@@ -1,0 +1,12 @@
+.login__container {
+  max-width: 100%;
+  width: 100%;
+  margin: 2rem auto;
+
+  .login__title {
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+}

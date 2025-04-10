@@ -1,0 +1,9 @@
+@Chat_HostAddress = http://localhost:8080
+
+POST {{Chat_HostAddress}}/chat/send
+Content-Type: application/json
+
+{
+  "message": "Тестовое сообщение"
+}
+

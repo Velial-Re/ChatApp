@@ -1,0 +1,27 @@
+.main-layout {
+  display: flex;
+  height: 100vh;
+  background-color: #36393f;
+  color: #dcddde;
+}
+
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #72767d;
+
+  h2 {
+    color: #fff;
+    margin-bottom: 16px;
+  }
+}

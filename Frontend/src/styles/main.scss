@@ -1,0 +1,92 @@
+@use "./reset";
+@use "./globals";
+@use "variables";
+@use "./mixins";
+@use "./app";
+@use "../components/index" as *;
+
+
+.main-page__container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.content-area {
+  flex: 1;
+  background-color: #36393f;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #72767d;
+
+  &__title {
+    color: #fff;
+    margin-bottom: 16px;
+  }
+}
+
+.loading-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #72767d;
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--text-normal);
+  background-color: var(--bg-primary);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--transition-normal);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--interactive-normal);
+  transition: all var(--transition-normal);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+input, textarea {
+  font-family: inherit;
+  color: var(--text-normal);
+  background-color: var(--input-background);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 0.5rem 0.75rem;
+
+  &::placeholder {
+    color: var(--input-placeholder);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+}
