@@ -1,5 +1,6 @@
 import {createContext, useCallback, useContext, useState} from 'react'
 import * as signalR from "@microsoft/signalr";
+import {useAuth} from "./AuthContext.jsx";
 
 
 const ChatContext = createContext();
@@ -12,11 +13,16 @@ export function ChatProvider({children}) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [newChatName, setNewChatName] = useState("");
+    const {logout} = useAuth();
+
 
     const loadUserChats = useCallback(async () => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) throw new Error("No token found");
+            if (!token){
+                logout();
+                throw new Error("No token found");
+            }
 
             const response = await fetch("http://localhost:8080/api/chats/my", {
                 headers: {
@@ -25,7 +31,11 @@ export function ChatProvider({children}) {
                 credentials: "include"
             });
             if (!response.ok) {
-                throw new Error(`HTTP error status: ${response.status}`)
+                if(response.status === 401){
+                 logout();
+                 return ;
+                }
+                throw new Error("Ошибка загрузки чатов")
             }
             const data = await response.json();
             setUserChats(data.map(chat => ({
@@ -84,7 +94,6 @@ export function ChatProvider({children}) {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("User not logged in");
 
-
         if (connection) {
             try {
                 connection.off("ReceiveMessage");
@@ -126,7 +135,7 @@ export function ChatProvider({children}) {
             await loadUserChats();
         })
 
-        if(!isSwitching) {
+        if (!isSwitching) {
             newConnection.on("UserJoined", (userName) => {
                 console.log(`${userName} joined`);
                 setMessages(prev => [...prev, {

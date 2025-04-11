@@ -1,0 +1,45 @@
+.user-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--border-radius-lg);
+  background: var(--bg-primary);
+  border-top: 1px solid var(--accent-active);
+  color: white;
+
+  .user__info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+
+  &__username {
+    font-size: 14px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user__actions {
+    display: flex;
+    gap: 8px;
+
+    button {
+      background: none;
+      border: none;
+      color: #bdc3c7;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
