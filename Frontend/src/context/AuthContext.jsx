@@ -23,7 +23,10 @@ export function AuthProvider({children}) {
 
     const refreshAuth = async () => {
         const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) return null;
+        if (!refreshToken) {
+            logout();
+            return null;
+        }
 
         try {
             const response = await fetch("http://localhost:8080/api/auth/refresh", {
@@ -33,7 +36,10 @@ export function AuthProvider({children}) {
                     "Authorization": `Bearer ${refreshToken}`
                 }
             });
-
+            if(!response.ok){
+                logout();
+                return null;
+            }
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem("token", data.token);
@@ -66,12 +72,36 @@ export function AuthProvider({children}) {
         setUser(null);
     }
 
+    const refreshToken = async () => {
+        try{
+            const refreshToken = localStorage.getItem("refreshToken");
+            if(!refreshToken) return null;
+
+            const response = await fetch("http://localhost:8080/api/auth/refresh",{
+                method: "Post",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${refreshToken}`
+                }
+            });
+            if(response.ok){
+                const data = await response.json();
+                localStorage.setItem("token", data.token);
+                return data.token;
+            }
+            return null;
+        }catch (error){
+            console.error("Refresh token failed:", error);
+            return null;
+        }
+    }
+
     if (isLoading) {
         return <div>Loading...</div>
     }
 
     return (
-        <AuthContext.Provider value={{user, login, logout, isLoading, refreshAuth}}>
+        <AuthContext.Provider value={{user, login, logout, isLoading, refreshAuth, refreshToken}}>
             <div className="App">
                 {children}
             </div>

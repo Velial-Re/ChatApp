@@ -4,8 +4,7 @@ import {useAuth} from "../../../context/AuthContext.jsx";
 import {useChat} from "../../../context/ChatContext.jsx";
 
 export default function LoginForm(){
-    const { user } = useAuth();
-    const { login } = useAuth();
+    const { user, login } = useAuth();
     const { joinChat } = useChat();
     const navigate = useNavigate();
 
@@ -48,7 +47,7 @@ export default function LoginForm(){
         return Object.keys(newErrors).length === 0;
     };
 
-    const onSubmit = async (e) => {
+    const onLogin = async (e) => {
         e.preventDefault();
         if (!validate()) return;
 
@@ -66,27 +65,31 @@ export default function LoginForm(){
             });
 
             if (!response.ok) {
-                const errorText = await response.json();
-                throw new Error(errorText|| "Login error");
+                const errorData = await response.json();
+                throw new Error(errorData.message|| "Ошибка авторизации");
             }
 
             const data = await response.json();
 
-            // Сохранение токенов
+            // Сохранение данных
             localStorage.setItem("token", data.token);
             localStorage.setItem("refreshToken", data.refreshToken);
+            localStorage.setItem("username", formData.username);
             // Логин из контекста
             login({
                 username: formData.username,
                 token: data.token,
                 refreshToken: data.refreshToken
             });
-
-            await joinChat(formData.username, "general");
+            try {
+            await joinChat(formData.username, "general", true);
+            }catch (chatError){
+                console.error("Ошибка подключения к чату: ", chatError);
+            }
 
             navigate("/");
         } catch (error) {
-            setErrors({form: error.message})
+            setErrors({form: error.message || "Ошибка авторизации"});
         } finally {
             setIsLoading(false);
         }
@@ -95,7 +98,7 @@ export default function LoginForm(){
         <div className="login__container">
             <h2 className="login__title">Войти</h2>
             {errors.form && <div className="error-message form__error">{errors.form}</div>}
-            <form className="login__form" onSubmit={onSubmit}>
+            <form className="login__form" onSubmit={onLogin}>
                 <div className="form__group">
                     <label className="form__label">Имя пользователя</label>
                     <input

@@ -3,6 +3,7 @@ import {useCallback, useEffect, useState} from "react";
 import {CreateChatModal} from "../../modals/chatModal/CreateChatModal/CreateChatModal";
 import {JoinChatModal} from "../../modals/chatModal/JoinChatModal/JoinChatModal";
 import {useNavigate} from "react-router-dom";
+import {UserPanel} from "../../UserPanel/UserPanel.jsx";
 
 
 export const ChatDashboard = () => {
@@ -13,8 +14,7 @@ export const ChatDashboard = () => {
         setShowCreateModal,
         showJoinModal,
         setShowJoinModal,
-        joinChat,
-        chatRoom,
+        joinChat
     } = useChat();
 
     const [loadingError, setLoadingError] = useState(null);
@@ -32,14 +32,13 @@ export const ChatDashboard = () => {
             setIsLoading(false);
         }
     }, [loadUserChats]);
-
     useEffect(() => {
         fetchUserChats();
     }, [fetchUserChats]);
 
     const onJoinChat = (chatName) => {
         const username = localStorage.getItem("username");
-        joinChat(username, chatName);
+        joinChat(username, chatName, true);
         navigate(`/chat/${chatName}`);
     };
 
@@ -78,7 +77,7 @@ export const ChatDashboard = () => {
                     </div>
                 ))}
             </div>
-
+            <UserPanel/>
             {showCreateModal && <CreateChatModal/>}
             {showJoinModal && <JoinChatModal/>}
         </div>
