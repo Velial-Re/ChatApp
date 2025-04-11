@@ -1,26 +1,79 @@
-import {createContext, useContext, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
+
 
 const AuthContext = createContext();
 
-export function AuthProvider({children}){
+export function AuthProvider({children}) {
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const login = (userData) => {
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const refreshToken = localStorage.getItem("refreshToken");
+        const username = localStorage.getItem("username");
+        if (token && refreshToken && username) {
+            setUser({
+                username,
+                token,
+                refreshToken
+            });
+        }
+        setIsLoading(false);
+    }, []);
+
+    const refreshAuth = async () => {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) return null;
+
+        try {
+            const response = await fetch("http://localhost:8080/api/auth/refresh", {
+                method: "Post",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${refreshToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("refreshToken", data.refreshToken);
+                setUser({
+                    username: localStorage.getItem("username"),
+                    token: data.token,
+                    refreshToken: data.refreshToken
+                });
+                return data.token;
+            }
+        }catch (error){
+            console.error("Refresh token failed", error);
+            logout();
+        }
+        return null;
+    }
+
+    const login = async (userData) => {
         localStorage.setItem("token", userData.token);
         localStorage.setItem("refreshToken", userData.refreshToken);
+        localStorage.setItem("username", userData.username);
         setUser(userData);
     }
 
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
+        localStorage.removeItem("username");
         setUser(null);
     }
 
-    return(
-        <AuthContext.Provider value={{user, login, logout}}>
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
+
+    return (
+        <AuthContext.Provider value={{user, login, logout, isLoading, refreshAuth}}>
             <div className="App">
-            {children}
+                {children}
             </div>
         </AuthContext.Provider>
     )
