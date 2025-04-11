@@ -80,17 +80,17 @@ export function ChatProvider({children}) {
         }
     }
 
-    const joinChat = async (userName, chatRoom) => {
+    const joinChat = async (userName, chatRoom, isSwitching = false) => {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("User not logged in");
 
 
         if (connection) {
             try {
-                await connection.stop();
                 connection.off("ReceiveMessage");
                 connection.off("UserJoined");
                 connection.off("UserLeft");
+                await connection.stop();
             } catch (error) {
                 console.error("Error closing previous connection:", error);
             }
@@ -125,15 +125,18 @@ export function ChatProvider({children}) {
             console.log("Chat list is updated");
             await loadUserChats();
         })
-        newConnection.on("UserJoined", (userName) => {
-            console.log(`${userName} joined`);
-            setMessages(prev => [...prev, {
-                userName: "System",
-                message: `${userName} joined the chat`,
-                id: crypto.randomUUID(),
-                isSystem: true
-            }]);
-        });
+
+        if(!isSwitching) {
+            newConnection.on("UserJoined", (userName) => {
+                console.log(`${userName} joined`);
+                setMessages(prev => [...prev, {
+                    userName: "System",
+                    message: `${userName} joined the chat`,
+                    id: crypto.randomUUID(),
+                    isSystem: true
+                }]);
+            });
+        }
 
         newConnection.on("UserLeft", (userName) => {
             console.log(`${userName} left`);
@@ -149,7 +152,7 @@ export function ChatProvider({children}) {
             await newConnection.start();
             console.log("SignalR connection established");
 
-            await newConnection.invoke("JoinChat", {userName, chatRoom});
+            await newConnection.invoke("JoinChat", {userName, chatRoom}, isSwitching);
 
             await loadUserChats();
 
