@@ -49,6 +49,7 @@ public class ChatController : ControllerBase
         }
         catch (Exception e)
         {
+            _logger.LogError(e, "Error getting user chats");
             return StatusCode(500, $"Internal server error: {e.Message}");
         }
     }

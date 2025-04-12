@@ -1,16 +1,56 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Chat.Hubs;
 using Chat.Data;
 using Chat.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSwaggerGen(s =>
+{
+    s.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Chat API",
+        Version = "v1",
+        Description = "Api Чат приложения"
+    });
+    s.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    s.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
 builder.Services.AddControllers();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -22,25 +62,64 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ClockSkew = TimeSpan.Zero
         };
-        
+
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                
-                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat") || path.StartsWithSegments("/hubs")))
+                context.Token = context.Request.Cookies["access_token"];
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                if (context.Exception is SecurityTokenExpiredException)
                 {
-                    context.Token = accessToken;
+                    context.Response.Headers.Add("Token-Expired", "true");
                 }
+
                 return Task.CompletedTask;
             }
         };
     });
-builder.Services.AddScoped<JwtService>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireValidUser", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+    });
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("StrictPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Disposition")
+            .SetPreflightMaxAge(TimeSpan.FromHours(1));
+    });
+});
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("api", httpContext =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            partitionKey: httpContext.User.Identity?.Name ?? httpContext.Connection.RemoteIpAddress?.ToString(),
+            factory: _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 100,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 10,
+                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+                TokensPerPeriod = 20,
+                AutoReplenishment = true
+            }));
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresSQL"),
@@ -51,36 +130,75 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
 
-
-builder.Services.AddCors(options =>
+builder.Services.AddSignalR().AddJsonProtocol(options =>
 {
-    options.AddPolicy("AllowFrontend",policy =>
-    {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            .WithExposedHeaders("Content-Disposition");
-    });
+    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+}).AddHubOptions<ChatHub>(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.ClientTimeoutInterval = TimeSpan.FromMinutes(1);
 });
 
-builder.Services.AddSignalR();
+builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
-builder.Services.AddAuthorization();
+
 var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(s =>
+    {
+        s.SwaggerEndpoint("/swagger/v1/swagger.json", "Chat API v1");
+        s.RoutePrefix = "swagger";
+    });
+}
+
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Strict,
+    Secure = CookieSecurePolicy.Always,
+    HttpOnly = HttpOnlyPolicy.Always
+});
+
+app.UseHttpsRedirection();
+app.UseHsts();
+
 app.UseRouting();
-app.UseCors("AllowFrontend");
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/swagger"), appBuilder =>
+{
+    appBuilder.Use(async (context, next) =>
+    {
+        var token = context.Request.Cookies["access_token"];
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            context.Request.Headers["Authorization"] = "Bearer " + token;
+        }
+
+        await next();
+    });
+});
+    
+app.UseCors("StrictPolicy");
+app.UseRateLimiter();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapHub<ChatHub>("/chat").RequireRateLimiting("api");
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    var retries = 10;
+    var retries = 3;
     while (retries > 0)
     {
         try
         {
-            dbContext.Database.Migrate();
+            await dbContext.Database.MigrateAsync();
             break;
         }
         catch (NpgsqlException ex)
@@ -91,9 +209,6 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();  
-app.MapHub<ChatHub>("/chat");
+
 app.MapGet("/api/test", () => "Api working");
 app.Run();

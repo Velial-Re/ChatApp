@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chat.Controllers;
+
 [ApiController]
 [Route("api/auth")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -24,6 +26,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] UserRegistration model)
     {
         if (await _context.Users.AnyAsync(us => us.UserName == model.Username))
@@ -46,7 +50,7 @@ public class AuthController : ControllerBase
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-        
+
         return Ok(new { message = "Registration successful" });
     }
 
@@ -59,56 +63,140 @@ public class AuthController : ControllerBase
             var user = await _context.Users
                 .FirstOrDefaultAsync(us => us.UserName == model.Username);
 
-            if (user == null || !_passwordHasher.VerifyPassword(user.PasswordHash, model.Password)) 
+            if (user == null || !_passwordHasher.VerifyPassword(user.PasswordHash, model.Password))
                 return Unauthorized("Invalid username or password");
 
             var token = _jwtService.GenerateJwtToken(user);
             var refreshToken = _jwtService.GenerateRefreshToken();
 
+            // Обновление refresh токена на сервере
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-
             await _context.SaveChangesAsync();
-            Response.Headers.Append("Access-Control-Allow-Origin", "http://localhost:5173");
-            Response.Headers.Append("Access-Control-Allow-Credentials", "true");
-            return Ok(new AuthResponse
+
+            Response.Cookies.Append("access_token", token, new CookieOptions
             {
-                Token = token,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(30),
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.Now.AddMinutes(30),
+                Domain = "localhost"
+            });
+
+            Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Domain = "localhost"
+            });
+
+            return Ok(new
+            {
+                Username = user.UserName,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+            });
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpGet("user")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _context.Users.FindAsync(Guid.Parse(userId!));
+
+            return Ok(new
+            {
                 Username = user.UserName
             });
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine($"Ошибка авторизации: {e}");
-            return StatusCode(500, "Internal server error");
+            Console.WriteLine($"Error get user ${e}");
+            throw;
         }
     }
 
+    [HttpPost("logout")]
+    [Authorize]
+    public IActionResult Logout()
+    {
+        try
+        {
+            Response.Cookies.Delete("access_token");
+            return Ok(new { message = "Logged out" });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error logout ${e}");
+            throw;
+        }
+    }
+
+    [HttpGet("token")]
+    [Authorize]
+    public IActionResult GetToken()
+    {
+        var token = Request.Cookies["access_token"];
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return Unauthorized("Token not found");
+        }
+
+        return Ok(new
+        {
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+        });
+    }
+
     [HttpPost("refresh")]
+    [AllowAnonymous]
     public async Task<IActionResult> Refresh([FromBody] AuthResponse model)
     {
-        var principal = _jwtService.GetPrincipalFromExpiredToken(model.Token);
-        var userId = Guid.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-        var user = await _context.Users.FindAsync(userId);
+        var refreshToken = Request.Cookies["refresh_token"];
+        if (string.IsNullOrEmpty(refreshToken)) return BadRequest("Invalid refresh token");
 
-        if (user == null || user.RefreshToken != model.RefreshToken ||
-            user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            return BadRequest("Invalid refresh token");
-        
+        var user = await _context.Users
+            .FirstOrDefaultAsync(us => us.RefreshToken == refreshToken);
+        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow) return BadRequest("Invalid refresh token");
+
         var newToken = _jwtService.GenerateJwtToken(user);
         var newRefreshToken = _jwtService.GenerateRefreshToken();
 
         user.RefreshToken = newRefreshToken;
         await _context.SaveChangesAsync();
 
-        return Ok(new AuthResponse
+        Response.Cookies.Append("access_token", newToken, new CookieOptions
         {
-            Token = newToken,
-            RefreshToken = newRefreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(30),
-            Username = user.UserName
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.Now.AddMinutes(30),
+            Domain = "localhost"
+        });
+
+        Response.Cookies.Append("refresh_token", newRefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTime.UtcNow.AddDays(7),
+            Domain = "localhost"
+        });
+        return Ok(new
+        {
+            Username = user.UserName,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
         });
     }
 }

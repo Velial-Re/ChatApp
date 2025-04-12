@@ -28,7 +28,7 @@ public class ChatHub : Hub<IChatClient>
         _dbContext = dbContext;
     }
 
-    public async Task JoinChat(UserConnection connection)
+    public async Task JoinChat(UserConnection connection, bool isSwitching = false)
     {
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
@@ -39,42 +39,44 @@ public class ChatHub : Hub<IChatClient>
         var user = await _dbContext.Users
             .Include(u => u.ChatRooms)
             .FirstOrDefaultAsync(u => u.Id == userGuid);
-        
-        if(user == null) throw new HubException("Пользователь не найден");
-        var room = await _dbContext.ChatRooms.FirstOrDefaultAsync(cr => cr.Name == connection.ChatRoom);
-        if (room == null)
-        {
-            room = new ChatRoom { Name = connection.ChatRoom };
-            _dbContext.ChatRooms.Add(room);
-        }
 
-        if (!user.ChatRooms.Contains(room))
+        if (user == null) throw new HubException("Пользователь не найден");
+
+        var room = await _dbContext.ChatRooms.FirstOrDefaultAsync(cr => cr.Name == connection.ChatRoom);
+
+        if (room == null) throw new HubException("Комната не найдена");
+
+        var inChat = user.ChatRooms.Contains(room);
+
+        if (!inChat)
         {
             user.ChatRooms.Add(room);
+            await _dbContext.SaveChangesAsync();
         }
-        
-        await _dbContext.SaveChangesAsync();
-        
+
         await Groups.AddToGroupAsync(Context.ConnectionId, room.Name);
         await _cache.SetStringAsync(Context.ConnectionId, $"{user.Id}|{room.Id}");
 
-        await Clients.Group(connection.ChatRoom).UserJoined(connection.UserName);
-        await SaveMessage(user.Id, room.Id, $"{connection.UserName} joined the chat", Guid.NewGuid());
+        if (!isSwitching && !inChat)
+        {
+            await Clients.Group(connection.ChatRoom).UserJoined(connection.UserName);
+            await SaveMessage(user.Id, room.Id, $"{connection.UserName} joined the chat", Guid.NewGuid());
+        }
     }
 
     public async Task SendMessage(string message, string messageId)
     {
         Console.WriteLine($"Attempting to send message: {message} (ID: {messageId})");
         var cacheData = await _cache.GetStringAsync(Context.ConnectionId);
-    
-        if (string.IsNullOrEmpty(cacheData)) 
+
+        if (string.IsNullOrEmpty(cacheData))
         {
             Console.WriteLine("No cache data found");
             return;
         }
 
         var parts = cacheData.Split('|');
-        if (parts.Length != 2) 
+        if (parts.Length != 2)
         {
             Console.WriteLine("Invalid cache data format");
             return;
@@ -88,8 +90,8 @@ public class ChatHub : Hub<IChatClient>
 
         var user = await _dbContext.Users.FindAsync(userId);
         var room = await _dbContext.ChatRooms.FindAsync(roomId);
-    
-        if(user == null || room == null) 
+
+        if (user == null || room == null)
         {
             Console.WriteLine("User or room not found");
             return;
@@ -97,10 +99,9 @@ public class ChatHub : Hub<IChatClient>
 
         try
         {
-         
             await SaveMessage(userId, roomId, message, Guid.Parse(messageId));
-        
-     
+
+
             await Clients.Group(room.Name).ReceiveMessage(user.UserName, message, messageId);
             Console.WriteLine($"Message sent to group '{room.Name}'");
             await Clients.Group(room.Name).UpdateChatList();
@@ -124,6 +125,7 @@ public class ChatHub : Hub<IChatClient>
             }
         }
     }
+
     private async Task SaveMessage(Guid userId, Guid roomId, string content, Guid messageId)
     {
         var message = new Message
@@ -169,30 +171,32 @@ public class ChatHub : Hub<IChatClient>
 
         await base.OnConnectedAsync();
     }
-    
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var cacheData = await _cache.GetStringAsync(Context.ConnectionId);
-        if (!string.IsNullOrEmpty(cacheData))
+        if (exception != null)
         {
-            var parts = cacheData.Split('|');
-            if (parts.Length == 2)
+            var cacheData = await _cache.GetStringAsync(Context.ConnectionId);
+            if (!string.IsNullOrEmpty(cacheData))
             {
-                var userId = Guid.Parse(parts[0]);
-                var roomId = Guid.Parse(parts[1]);
-
-                var user = await _dbContext.Users.FindAsync(userId);
-                var room = await _dbContext.ChatRooms.FindAsync(roomId);
-
-                if (user != null && room != null)
+                var parts = cacheData.Split('|');
+                if (parts.Length == 2 && Guid.TryParse(parts[0], out var userId) &&
+                    Guid.TryParse(parts[1], out var roomId))
                 {
-                    await Clients.Group(room.Name).UserLeft(user.UserName);
-                    await SaveMessage(user.Id, room.Id, $"{user.UserName} left the chat", Guid.NewGuid());
-                }
-            }
+                    var user = await _dbContext.Users.FindAsync(userId);
+                    var room = await _dbContext.ChatRooms.FindAsync(roomId);
 
-            await _cache.RemoveAsync(Context.ConnectionId);
+                    if (user != null && room != null)
+                    {
+                        await Clients.Group(room.Name).UserLeft(user.UserName);
+                        await SaveMessage(user.Id, room.Id, $"{user.UserName} left the chat", Guid.NewGuid());
+                    }
+                }
+
+                await _cache.RemoveAsync(Context.ConnectionId);
+            }
         }
+
 
         await base.OnDisconnectedAsync(exception);
     }
