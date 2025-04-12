@@ -3,7 +3,7 @@ import {Message} from "../Message/Message.jsx";
 import {useChat} from "../../../context/ChatContext.jsx";
 
 export const Chat = () => {
-    const {messages, chatRoom, connection, sendMessage} = useChat();
+    const {messages, chatRoom, sendMessage} = useChat();
     const [message, setMessage] = useState("");
     const messageEndRef = useRef(null);
 

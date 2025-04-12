@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from "../../../context/AuthContext.jsx";
-import {useChat} from "../../../context/ChatContext.jsx";
 
-export default function LoginForm(){
-    const { user, login } = useAuth();
-    const { joinChat } = useChat();
+
+export default function LoginForm() {
+    const {user, login} = useAuth();
+
     const navigate = useNavigate();
 
     useEffect(() => {
-        if(user){
+        if (user) {
             navigate("/");
         }
     }, [user, navigate]);
@@ -37,7 +37,7 @@ export default function LoginForm(){
     };
     const validate = () => {
         const newErrors = {};
-        if (!formData.username?.trim()) {
+        if (!formData.username.trim()) {
             newErrors.username = "Имя пользователя обязательно";
         }
         if (!formData.password) {
@@ -53,43 +53,13 @@ export default function LoginForm(){
 
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:8080/api/auth/login", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    username: formData.username,
-                    password: formData.password,
-                }),
-                credentials: "include",
-                mode: "cors"
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message|| "Ошибка авторизации");
-            }
-
-            const data = await response.json();
-
-            // Сохранение данных
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("refreshToken", data.refreshToken);
-            localStorage.setItem("username", formData.username);
-            // Логин из контекста
-            login({
+            await login({
                 username: formData.username,
-                token: data.token,
-                refreshToken: data.refreshToken
-            });
-            try {
-            await joinChat(formData.username, "general", true);
-            }catch (chatError){
-                console.error("Ошибка подключения к чату: ", chatError);
-            }
-
+                password: formData.password
+            })
             navigate("/");
         } catch (error) {
-            setErrors({form: error.message || "Ошибка авторизации"});
+            setErrors({form: error.response?.data?.message || "Ошибка авторизации"});
         } finally {
             setIsLoading(false);
         }

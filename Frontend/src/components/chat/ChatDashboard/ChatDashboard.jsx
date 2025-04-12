@@ -20,6 +20,7 @@ export const ChatDashboard = () => {
     const [loadingError, setLoadingError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
     const fetchUserChats = useCallback(async () => {
         setLoadingError(null);
         setIsLoading(true);
@@ -37,8 +38,7 @@ export const ChatDashboard = () => {
     }, [fetchUserChats]);
 
     const onJoinChat = (chatName) => {
-        const username = localStorage.getItem("username");
-        joinChat(username, chatName, true);
+        joinChat(chatName, true);
         navigate(`/chat/${chatName}`);
     };
 

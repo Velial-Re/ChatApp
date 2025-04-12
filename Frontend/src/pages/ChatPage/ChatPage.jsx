@@ -6,11 +6,10 @@ import {useEffect} from "react";
 export default function ChatPage() {
     const {chatName} = useParams()
     const {joinChat, chatRoom} = useChat();
-
+    const {user} = useAuth();
     useEffect(() => {
-        const username = localStorage.getItem("username");
-        if (username && chatName && chatName !== chatRoom) {
-            joinChat(username, chatName);
+        if (user && chatName && chatName !== chatRoom) {
+            joinChat(chatName);
         }
     }, [chatName, joinChat, chatRoom]);
     return (

@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import api from "../../../api/api.js";
 
 export const RegistrationForm = () => {
     const [formData, setFormData] = useState({
@@ -54,31 +55,21 @@ export const RegistrationForm = () => {
         setIsSubmitted(true);
 
         try {
-            const response = await fetch('http://localhost:8080/api/auth/register', {
-                method: 'POST',
-                mode: "cors",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password
-                })
+            const response = await api.post("/auth/register", {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(`Ошибка регистрации ${data.message}`);
-            }
 
             alert('Регистрация успешна!');
 
         } catch (error) {
             console.error('Registration error:', error);
-            alert(error.message || 'Произошла ошибка при регистрации');
+            if (error.response?.data?.message) {
+                alert(`Ошибка регистрации: ${error.response.data.message}`);
+            } else {
+                alert('Произошла ошибка при регистрации');
+            }
         } finally {
             setIsSubmitted(false);
         }

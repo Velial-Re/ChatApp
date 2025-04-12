@@ -1,6 +1,7 @@
 import {createContext, useCallback, useContext, useState} from 'react'
 import * as signalR from "@microsoft/signalr";
 import {useAuth} from "./AuthContext.jsx";
+import api from "../api/api.js";
 
 
 const ChatContext = createContext();
@@ -13,86 +14,61 @@ export function ChatProvider({children}) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [newChatName, setNewChatName] = useState("");
-    const {logout} = useAuth();
+    const {user, logout} = useAuth();
 
 
     const loadUserChats = useCallback(async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token){
-                logout();
-                throw new Error("No token found");
-            }
-
-            const response = await fetch("http://localhost:8080/api/chats/my", {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                },
-                credentials: "include"
-            });
-            if (!response.ok) {
-                if(response.status === 401){
-                 logout();
-                 return ;
-                }
-                throw new Error("Ошибка загрузки чатов")
-            }
-            const data = await response.json();
-            setUserChats(data.map(chat => ({
+           const response = await api.get("/chats/my");
+            setUserChats(response.data.map(chat => ({
                 ...chat,
                 lastMessage: chat.lastMessage || "Нет сообщений",
                 isActive: chat.name === chatRoom
             })));
-            return data;
+            return response.data;
         } catch (error) {
+            if(error.response?.status === 401){
+                logout();
+                return;
+            }
             console.error("Error loading user chats", error);
-            throw error;
+            throw new Error("Failed to load user chats");
         }
-    }, [chatRoom]);
+    }, [chatRoom, logout]);
 
 
     const createChat = async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Authentication token is now found");
+            if(!user){
+                throw new Error("User is not logged in");
+            }
 
             if (!newChatName.trim()) {
                 throw new Error("Chat name cannot be empty");
             }
 
 
-            const response = await fetch("http://localhost:8080/api/chats/create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name: newChatName.trim()
-                }),
-                credentials: "include"
-            });
+            const response = await api.post("/chats/create", {
+                name: newChatName.trim()
+            })
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Failed to create chat");
-            }
-            const data = await response.json();
             await loadUserChats();
-            await joinChat(localStorage.getItem("username"), data.name)
+            await joinChat(user.username, response.data.name);
+
             setShowCreateModal(false);
             setNewChatName("");
-            return data;
+            return response.data;
         } catch (error) {
             console.error("Chat creation error:", error);
-            alert(error.message);
+            alert(error.response?.data?.message || error.message);
             throw error;
         }
     }
 
-    const joinChat = async (userName, chatRoom, isSwitching = false) => {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("User not logged in");
+    const joinChat = async (chatRoom, isSwitching = false) => {
+        if(!user){
+            throw new Error("User is not logged in");
+        }
 
         if (connection) {
             try {
@@ -104,6 +80,9 @@ export function ChatProvider({children}) {
                 console.error("Error closing previous connection:", error);
             }
         }
+
+        const tokenResponse = await api.get("/auth/token")
+        const token = tokenResponse.data.token;
 
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl("http://localhost:8080/chat", {
@@ -161,31 +140,23 @@ export function ChatProvider({children}) {
             await newConnection.start();
             console.log("SignalR connection established");
 
-            await newConnection.invoke("JoinChat", {userName, chatRoom}, isSwitching);
+            await newConnection.invoke("JoinChat", {userName: user.username, chatRoom}, isSwitching);
 
             await loadUserChats();
 
 
             const history = await newConnection.invoke("GetChatHistory", chatRoom);
+            console.log('history:', history);
 
+            const formattedHistory = history.map(message => ({
+                userName: message.UserName,
+                message: message.Content,
+                id: crypto.randomUUID(),
+                timestamp: message.SentAt,
+                isSystem: false
+            }));
 
-            const uniqueHistory = history.reduce((acc, message) => {
-                const exists = acc.some(m =>
-                    m.userName === message.userName &&
-                    m.content === message.content
-                );
-                if (!exists) {
-                    acc.push({
-                        userName: message.userName,
-                        message: message.content,
-                        id: crypto.randomUUID(),
-                        timestamp: message.sentAt
-                    });
-                }
-                return acc;
-            }, []);
-
-            setMessages(uniqueHistory);
+            setMessages(formattedHistory);
             setConnection(newConnection);
             setChatRoom(chatRoom);
         } catch (error) {
