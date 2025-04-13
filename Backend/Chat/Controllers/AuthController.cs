@@ -3,7 +3,6 @@ using Chat.Data;
 using Chat.Models;
 using Chat.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -131,7 +130,21 @@ public class AuthController : ControllerBase
     {
         try
         {
-            Response.Cookies.Delete("access_token");
+            Response.Cookies.Delete("access_token", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Domain = "localhost"
+            });
+
+            Response.Cookies.Delete("refresh_token", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Domain = "localhost"
+            });
             return Ok(new { message = "Logged out" });
         }
         catch (Exception e)
@@ -161,42 +174,45 @@ public class AuthController : ControllerBase
 
     [HttpPost("refresh")]
     [AllowAnonymous]
-    public async Task<IActionResult> Refresh([FromBody] AuthResponse model)
+    public async Task<IActionResult> Refresh()
     {
         var refreshToken = Request.Cookies["refresh_token"];
-        if (string.IsNullOrEmpty(refreshToken)) return BadRequest("Invalid refresh token");
+        if (string.IsNullOrEmpty(refreshToken))
+            return BadRequest("Invalid refresh token");
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(us => us.RefreshToken == refreshToken);
-        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow) return BadRequest("Invalid refresh token");
+            .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
+        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            return BadRequest("Invalid refresh token");
+        
         var newToken = _jwtService.GenerateJwtToken(user);
         var newRefreshToken = _jwtService.GenerateRefreshToken();
-
+        
         user.RefreshToken = newRefreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _context.SaveChangesAsync();
 
+        // Установка куки
         Response.Cookies.Append("access_token", newToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = false,
-            SameSite = SameSiteMode.Lax,
-            Expires = DateTimeOffset.Now.AddMinutes(30),
-            Domain = "localhost"
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddMinutes(15)
         });
 
         Response.Cookies.Append("refresh_token", newRefreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = false,
-            SameSite = SameSiteMode.Lax,
-            Expires = DateTime.UtcNow.AddDays(7),
-            Domain = "localhost"
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7)
         });
+
         return Ok(new
         {
-            Username = user.UserName,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+            Username = user.UserName
         });
     }
 }
