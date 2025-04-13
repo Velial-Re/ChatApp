@@ -1,14 +1,13 @@
-import {ChatDashboard} from "../../components/chat/ChatDashboard/ChatDashboard.jsx";
-import {Outlet} from "react-router-dom";
-
+import { ChatDashboard } from '../../components/chat/ChatDashboard/ChatDashboard.jsx'
+import { Outlet } from 'react-router-dom'
 
 export const MainPage = () => {
-    return (
-        <div className="main-page__container">
-            <ChatDashboard/>
-            <div className="content-area">
-                <Outlet/>
-            </div>
-        </div>
-    )
+  return (
+    <div className="main-page__container">
+      <ChatDashboard />
+      <div className="content-area">
+        <Outlet />
+      </div>
+    </div>
+  )
 }
