@@ -3,7 +3,7 @@ import {ChatProvider} from "./context/ChatContext.jsx";
 import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import AuthPage from "./pages/AuthPage/AuthPage.jsx";
-import ChatPage from "./components/chat/ChatPage/ChatPage.jsx";
+import ChatPage from "./pages/ChatPage/ChatPage.jsx";
 import {MainPage} from "./pages/MainPage/MainPage.jsx";
 
 function AppWrapper() {
