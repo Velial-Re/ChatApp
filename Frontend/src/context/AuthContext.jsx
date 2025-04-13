@@ -13,8 +13,8 @@ export function AuthProvider({children}) {
             const response = await api.get("auth/user");
             setUser(response.data)
         } catch (error) {
-            console.error("Auth check failed", error);
             setUser(null);
+            throw new Error(error);
         } finally {
             setIsLoading(false);
         }
@@ -59,7 +59,7 @@ export function AuthProvider({children}) {
 
     const refreshAuth = async () => {
         try {
-           await api.post("auth/refresh");
+            await api.post("auth/refresh");
         } catch (error) {
             console.error("Refresh token failed", error);
             logout();
