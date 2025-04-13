@@ -7,9 +7,15 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Chat/Chat.csproj", "Chat/"]
+
+# Создаём папку и копируем csproj
+RUN mkdir -p Chat
+COPY Chat/Chat.csproj Chat/
 RUN dotnet restore "Chat/Chat.csproj"
-COPY . .
+
+# Копируем остальной код
+COPY Chat/. ./Chat/
+
 WORKDIR "/src/Chat"
 RUN dotnet build "Chat.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
