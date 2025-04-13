@@ -91,7 +91,7 @@ export function ChatProvider({children}) {
                 accessTokenFactory: () => token
             })
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Information)
+            .configureLogging(signalR.LogLevel.Warning)
             .build();
 
         newConnection.on("ReceiveMessage", (userName, message, messageId) => {
@@ -138,7 +138,6 @@ export function ChatProvider({children}) {
 
         try {
             await newConnection.start();
-            console.log("SignalR connection established");
 
             await newConnection.invoke("JoinChat", {userName: user.username, chatRoom}, isSwitching);
 
@@ -146,7 +145,6 @@ export function ChatProvider({children}) {
 
 
             const history = await newConnection.invoke("GetChatHistory", chatRoom);
-            console.log('history:', history);
 
             const formattedHistory = history.map(message => ({
                 userName: message.UserName,
