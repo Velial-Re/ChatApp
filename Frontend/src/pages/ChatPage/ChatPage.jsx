@@ -1,7 +1,8 @@
 import {useParams} from 'react-router-dom'
-import {Chat} from "../Chat/Chat.jsx";
-import {useChat} from "../../../context/ChatContext.jsx";
+import {Chat} from "../../components/chat/Chat/Chat.jsx";
+import {useChat} from "../../context/ChatContext.jsx";
 import {useEffect} from "react";
+import {useAuth} from "../../context/AuthContext.jsx";
 
 export default function ChatPage() {
     const {chatName} = useParams()
@@ -11,7 +12,7 @@ export default function ChatPage() {
         if (user && chatName && chatName !== chatRoom) {
             joinChat(chatName);
         }
-    }, [chatName, joinChat, chatRoom]);
+    }, [chatName, joinChat, chatRoom, user]);
     return (
         <div className="chat-page">
             {chatName === chatRoom ? (
