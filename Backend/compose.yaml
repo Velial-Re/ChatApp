@@ -24,7 +24,7 @@
     networks:
       - app_net
     environment:
-      ConnectionStrings__PostgreSQL: "Host=postgres;Port=5432;Database=chat;Username=postgres;Password=postgres;Timeout=300"
+      ConnectionStrings__PostgreSQL: "Host=postgres;Port=5433;Database=chat;Username=postgres;Password=postgres;Timeout=300"
       ConnectionStrings__Redis: "redis"
     depends_on:
       postgres:
@@ -52,7 +52,4 @@ volumes:
 networks:
   app_net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.30.0.0/16
 
