@@ -52,7 +52,7 @@ export function VoiceChatProvider({children}) {
         } catch (error) {
             console.error("Error joining voice chat", error);
             if (localStream) {
-                localStream.getTraks().forEach(track => track.stop());
+                localStream.getTracks().forEach(track => track.stop());
                 setLocalStream(null);
             }
         }
