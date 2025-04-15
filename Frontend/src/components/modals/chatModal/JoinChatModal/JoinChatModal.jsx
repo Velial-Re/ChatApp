@@ -7,8 +7,7 @@ export const JoinChatModal = () => {
     const {showJoinModal, setShowJoinModal, joinChat} = useChat();
 
     const onJoin = () => {
-        const username = localStorage.getItem('username');
-        joinChat(username, chatName);
+        joinChat(chatName, false);
         setShowJoinModal(false);
     };
 

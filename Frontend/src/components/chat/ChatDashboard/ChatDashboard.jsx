@@ -6,7 +6,7 @@ import {useNavigate} from "react-router-dom";
 import {UserPanel} from "../../UserPanel/UserPanel.jsx";
 
 
-export const ChatDashboard = () => {
+export default function ChatDashboard() {
     const {
         userChats,
         loadUserChats,

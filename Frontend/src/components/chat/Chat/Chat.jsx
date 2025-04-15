@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {Message} from "../Message/Message.jsx";
 import {useChat} from "../../../context/ChatContext.jsx";
 
-export const Chat = () => {
+export default function Chat() {
     const {messages, chatRoom, sendMessage} = useChat();
     const [message, setMessage] = useState("");
     const messageEndRef = useRef(null);

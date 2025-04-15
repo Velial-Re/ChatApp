@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import api from "../../../api/api.js";
 
-export const RegistrationForm = () => {
+export default function RegistrationForm() {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
