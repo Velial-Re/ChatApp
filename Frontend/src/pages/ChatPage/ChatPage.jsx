@@ -1,8 +1,8 @@
 import {useParams} from 'react-router-dom'
-import {Chat} from "../../components/chat/Chat/Chat.jsx";
 import {useChat} from "../../context/ChatContext.jsx";
 import {useEffect} from "react";
 import {useAuth} from "../../context/AuthContext.jsx";
+import {lazyImport} from "../../routes/lazy_import.jsx";
 
 export default function ChatPage() {
     const {chatName} = useParams()
@@ -16,7 +16,7 @@ export default function ChatPage() {
     return (
         <div className="chat-page">
             {chatName === chatRoom ? (
-                <Chat/>
+                <lazyImport.Chat/>
             ) : (
                 <div className="loading-chat">Загрузка чата...</div>
             )}

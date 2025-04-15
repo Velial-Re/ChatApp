@@ -19,7 +19,7 @@ export function ChatProvider({children}) {
 
     const loadUserChats = useCallback(async () => {
         try {
-           const response = await api.get("/chats/my");
+            const response = await api.get("/chats/my");
             setUserChats(response.data.map(chat => ({
                 ...chat,
                 lastMessage: chat.lastMessage || "Нет сообщений",
@@ -27,7 +27,7 @@ export function ChatProvider({children}) {
             })));
             return response.data;
         } catch (error) {
-            if(error.response?.status === 401){
+            if (error.response?.status === 401) {
                 logout();
                 return;
             }
@@ -39,7 +39,7 @@ export function ChatProvider({children}) {
 
     const createChat = async () => {
         try {
-            if(!user){
+            if (!user) {
                 throw new Error("User is not logged in");
             }
 
@@ -53,7 +53,7 @@ export function ChatProvider({children}) {
             })
 
             await loadUserChats();
-            await joinChat(user.username, response.data.name);
+            await joinChat(response.data.name);
 
             setShowCreateModal(false);
             setNewChatName("");
@@ -66,7 +66,7 @@ export function ChatProvider({children}) {
     }
 
     const joinChat = async (chatRoom, isSwitching = false) => {
-        if(!user){
+        if (!user) {
             throw new Error("User is not logged in");
         }
 
@@ -95,7 +95,6 @@ export function ChatProvider({children}) {
             .build();
 
         newConnection.on("ReceiveMessage", (userName, message, messageId) => {
-            console.log(`Received message: ${userName}, ${message} (id: ${messageId})`);
             setMessages(prev => {
 
                 if (prev.some(msg => msg.id === messageId)) return prev;
@@ -110,13 +109,11 @@ export function ChatProvider({children}) {
         });
 
         newConnection.on("UpdateChatList", async () => {
-            console.log("Chat list is updated");
             await loadUserChats();
         })
 
         if (!isSwitching) {
             newConnection.on("UserJoined", (userName) => {
-                console.log(`${userName} joined`);
                 setMessages(prev => [...prev, {
                     userName: "System",
                     message: `${userName} joined the chat`,
@@ -127,7 +124,6 @@ export function ChatProvider({children}) {
         }
 
         newConnection.on("UserLeft", (userName) => {
-            console.log(`${userName} left`);
             setMessages(prev => [...prev, {
                 userName: "System",
                 message: `${userName} left the chat`,
@@ -139,7 +135,12 @@ export function ChatProvider({children}) {
         try {
             await newConnection.start();
 
-            await newConnection.invoke("JoinChat", {userName: user.username, chatRoom}, isSwitching);
+            const userConnection = {
+                UserName: user.username,
+                ChatRoom: chatRoom
+            };
+
+            await newConnection.invoke("JoinChat", userConnection, isSwitching);
 
             await loadUserChats();
 
