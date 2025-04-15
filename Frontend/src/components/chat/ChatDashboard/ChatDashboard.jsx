@@ -5,20 +5,20 @@ import { JoinChatModal } from '../../modals/chatModal/JoinChatModal/JoinChatModa
 import { useNavigate } from 'react-router-dom'
 import { UserPanel } from '../../UserPanel/UserPanel.jsx'
 
-export const ChatDashboard = () => {
-  const {
-    userChats,
-    loadUserChats,
-    showCreateModal,
-    setShowCreateModal,
-    showJoinModal,
-    setShowJoinModal,
-    joinChat,
-  } = useChat()
+export default function ChatDashboard() {
+    const {
+        userChats,
+        loadUserChats,
+        showCreateModal,
+        setShowCreateModal,
+        showJoinModal,
+        setShowJoinModal,
+        joinChat
+    } = useChat();
 
-  const [loadingError, setLoadingError] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
+    const [loadingError, setLoadingError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
   const fetchUserChats = useCallback(async () => {
     setLoadingError(null)

@@ -1,10 +1,7 @@
-import { AuthProvider, useAuth } from './context/AuthContext.jsx'
-import { ChatProvider } from './context/ChatContext.jsx'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute.jsx'
-import AuthPage from './pages/AuthPage/AuthPage.jsx'
-import ChatPage from './pages/ChatPage/ChatPage.jsx'
-import { MainPage } from './pages/MainPage/MainPage.jsx'
+import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
+import { ChatProvider } from "./context/ChatContext.jsx";
+import { BrowserRouter } from "react-router-dom";
+import { AppRoutes } from "./routes/routes.jsx";
 
 function AppWrapper() {
   return (
@@ -25,34 +22,7 @@ function AppContent() {
     return <div>Loading...</div>
   }
 
-  return (
-    <Routes>
-      <Route path="/auth/*" element={<AuthPage />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <MainPage />
-          </ProtectedRoute>
-        }
-      >
-        <Route
-          index
-          element={
-            <div className="welcome-screen">
-              <h2 className="welcome-screen__title">
-                Добро пожаловать в Web Chat
-              </h2>
-              <p>Выберите чат из списка</p>
-            </div>
-          }
-        />
-        <Route path="chat/:chatName" element={<ChatPage />} />
-      </Route>
-      <Route path="/login" element={<Navigate to="/auth/login" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+    return <AppRoutes />;
 }
 
 export default AppWrapper

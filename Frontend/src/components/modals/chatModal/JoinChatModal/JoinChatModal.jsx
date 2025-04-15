@@ -6,11 +6,10 @@ export const JoinChatModal = () => {
   const [chatName, setChatName] = useState('')
   const { showJoinModal, setShowJoinModal, joinChat } = useChat()
 
-  const onJoin = () => {
-    const username = localStorage.getItem('username')
-    joinChat(username, chatName)
-    setShowJoinModal(false)
-  }
+    const onJoin = () => {
+        joinChat(chatName, false);
+        setShowJoinModal(false);
+    };
 
   return (
     <Modal

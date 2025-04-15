@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Message } from '../Message/Message.jsx'
 import { useChat } from '../../../context/ChatContext.jsx'
 
-export const Chat = () => {
-  const { messages, chatRoom, sendMessage } = useChat()
-  const [message, setMessage] = useState('')
-  const messageEndRef = useRef(null)
+export default function Chat() {
+    const {messages, chatRoom, sendMessage} = useChat();
+    const [message, setMessage] = useState("");
+    const messageEndRef = useRef(null);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
