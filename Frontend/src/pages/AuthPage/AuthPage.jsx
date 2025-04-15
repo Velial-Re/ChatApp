@@ -1,12 +1,25 @@
-import {Route, Routes, useNavigate} from "react-router-dom";
-import LoginForm from "../../components/auth/LoginForm/LoginForm.jsx";
-import {RegistrationForm} from "../../components/auth/RegistrationForm/RegistrationForm.jsx";
-import {useState} from "react";
-
+import {useState, useEffect} from "react";
+import {
+    Routes,
+    Route,
+    useNavigate,
+    useLocation,
+    Navigate
+} from "react-router-dom";
+import {LazyLoader} from "../../routes/lazy_loading";
+import {lazyImport} from "../../routes/lazy_import";
 
 export default function AuthPage() {
-    const [activeTab, setActiveTab] = useState("login");
     const navigate = useNavigate();
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState('login');
+
+    useEffect(() => {
+        const path = location.pathname.split('/').pop();
+        if (path === 'login' || path === 'registration') {
+            setActiveTab(path);
+        }
+    }, [location]);
 
     const tabChange = (tab) => {
         setActiveTab(tab);
@@ -32,10 +45,19 @@ export default function AuthPage() {
             </div>
             <div className="auth__form-container">
                 <Routes>
-                    <Route path="login" element={<LoginForm/>}/>
-                    <Route path="registration" element={<RegistrationForm/>}/>
+                    <Route path="login" element={
+                        <LazyLoader>
+                            <lazyImport.LoginForm/>
+                        </LazyLoader>
+                    }/>
+                    <Route path="registration" element={
+                        <LazyLoader>
+                            <lazyImport.RegistrationForm/>
+                        </LazyLoader>
+                    }/>
+                    <Route index element={<Navigate to="login" replace/>}/>
                 </Routes>
             </div>
         </div>
-    )
+    );
 }

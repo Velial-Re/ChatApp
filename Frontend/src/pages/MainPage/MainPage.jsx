@@ -1,11 +1,10 @@
-import {ChatDashboard} from "../../components/chat/ChatDashboard/ChatDashboard.jsx";
 import {Outlet} from "react-router-dom";
+import {lazyImport} from "../../routes/lazy_import.jsx";
 
-
-export const MainPage = () => {
+export default function MainPage() {
     return (
         <div className="main-page__container">
-            <ChatDashboard/>
+            <lazyImport.ChatDashboard/>
             <div className="content-area">
                 <Outlet/>
             </div>
