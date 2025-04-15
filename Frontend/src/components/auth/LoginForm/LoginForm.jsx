@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext.jsx'
+import { useAuth } from '@/context/AuthContext.jsx'
 
 export default function LoginForm() {
   const { user, login } = useAuth()

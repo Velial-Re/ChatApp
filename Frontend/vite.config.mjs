@@ -30,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
     },
 
     server: {
-      port: 9000,
+      port: 5173,
       open: true,
       historyApiFallback: true,
     },
