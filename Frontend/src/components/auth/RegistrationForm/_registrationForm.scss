@@ -11,11 +11,11 @@
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
   }
-  @media (max-width: 600px){
-    .form__group{
+  @media (max-width: 600px) {
+    .form__group {
       margin-bottom: 1rem;
     }
-    .registration__container{
+    .registration__container {
       padding: 2rem;
     }
   }
@@ -63,7 +63,5 @@
   &:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
-
   }
-
 }

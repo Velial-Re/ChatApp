@@ -70,7 +70,7 @@
   &.active {
     background-color: var(--bg-modifier-active);
 
-    h3{
+    h3 {
       color: var(--interactive-active);
     }
   }
@@ -85,7 +85,7 @@
   gap: 0.25rem;
 
   &::before {
-    content: "#";
+    content: '#';
     color: var(--channel-default);
   }
 }

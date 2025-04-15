@@ -1,10 +1,9 @@
-@use "./reset";
-@use "./globals";
-@use "variables";
-@use "./mixins";
-@use "./app";
-@use "../components/index" as *;
-
+@use './reset';
+@use './globals';
+@use 'variables';
+@use './mixins';
+@use './app';
+@use '../components/index' as *;
 
 .main-page__container {
   display: flex;
@@ -73,7 +72,8 @@ button {
   font-weight: 500;
 }
 
-input, textarea {
+input,
+textarea {
   font-family: inherit;
   color: var(--text-normal);
   background-color: var(--input-background);

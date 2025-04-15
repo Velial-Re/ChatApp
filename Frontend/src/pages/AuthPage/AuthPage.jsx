@@ -21,10 +21,10 @@ export default function AuthPage() {
         }
     }, [location]);
 
-    const tabChange = (tab) => {
-        setActiveTab(tab);
-        navigate(`/auth/${tab}`);
-    };
+  const tabChange = (tab) => {
+    setActiveTab(tab)
+    navigate(`/auth/${tab}`)
+  }
 
     return (
         <div className="auth__container">
