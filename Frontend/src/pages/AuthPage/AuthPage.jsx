@@ -1,11 +1,5 @@
-import {useState, useEffect} from "react";
-import {
-    Routes,
-    Route,
-    useNavigate,
-    useLocation,
-    Navigate
-} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import {LazyLoader} from "../../routes/lazy_loading";
 import {lazyImport} from "../../routes/lazy_import";
 
@@ -21,10 +15,10 @@ export default function AuthPage() {
         }
     }, [location]);
 
-  const tabChange = (tab) => {
-    setActiveTab(tab)
-    navigate(`/auth/${tab}`)
-  }
+    const tabChange = (tab) => {
+        setActiveTab(tab)
+        navigate(`/auth/${tab}`)
+    }
 
     return (
         <div className="auth__container">

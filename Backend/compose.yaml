@@ -13,7 +13,7 @@
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d chat"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d chat" ]
       interval: 10s
       timeout: 5s
       retries: 10

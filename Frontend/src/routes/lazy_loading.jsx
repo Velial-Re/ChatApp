@@ -1,6 +1,6 @@
-import { Suspense } from "react";
+import {Suspense} from "react";
 
-export const LazyLoader = ({ children }) => (
+export const LazyLoader = ({children}) => (
     <Suspense fallback={<div>Loading...</div>}>
         {children}
     </Suspense>

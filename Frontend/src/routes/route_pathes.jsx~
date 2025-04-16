@@ -1,7 +1,0 @@
-export const PATHS = {
-    ROOT: '/',
-    AUTH: '/auth/*',
-    LOGIN: '/login',
-    CHAT: 'chat/:chatName',
-    WILDCARD: '*'
-};

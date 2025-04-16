@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import {lazy} from "react";
 
 export const lazyImport = {
     AuthPage: lazy(() => import("../pages/AuthPage/AuthPage.jsx")),

@@ -1,5 +1,5 @@
-import { lazyImport } from "./lazy_import";
-import { LazyLoader } from "./lazy_loading.jsx";
+import {lazyImport} from "./lazy_import";
+import {LazyLoader} from "./lazy_loading.jsx";
 
 export const WelcomeScreen = () => (
     <div className="welcome-screen">
@@ -11,44 +11,44 @@ export const WelcomeScreen = () => (
 export const ROUTE_ELEMENTS = {
     AUTH: (
         <LazyLoader>
-            <lazyImport.AuthPage />
+            <lazyImport.AuthPage/>
         </LazyLoader>
     ),
     LOGIN_FORM: (
         <LazyLoader>
-            <lazyImport.LoginForm />
+            <lazyImport.LoginForm/>
         </LazyLoader>
     ),
     REGISTRATION_FORM: (
         <LazyLoader>
-            <lazyImport.RegistrationForm />
+            <lazyImport.RegistrationForm/>
         </LazyLoader>
     ),
     CHAT_PAGE: (
         <LazyLoader>
-            <lazyImport.ChatPage />
+            <lazyImport.ChatPage/>
         </LazyLoader>
     ),
     MAIN: (
         <LazyLoader>
-            <lazyImport.MainPage />
+            <lazyImport.MainPage/>
         </LazyLoader>
     ),
     CHAT_DASHBOARD: (
         <LazyLoader>
-            <lazyImport.ChatDashboard />
+            <lazyImport.ChatDashboard/>
         </LazyLoader>
     ),
     CHAT: (
         <LazyLoader>
-            <lazyImport.Chat />
+            <lazyImport.Chat/>
         </LazyLoader>
     ),
-    WELCOME: <WelcomeScreen />,
+    WELCOME: <WelcomeScreen/>,
     PROTECTED_MAIN: (
         <LazyLoader>
             <lazyImport.ProtectedRoute>
-                <lazyImport.MainPage />
+                <lazyImport.MainPage/>
             </lazyImport.ProtectedRoute>
         </LazyLoader>
     )

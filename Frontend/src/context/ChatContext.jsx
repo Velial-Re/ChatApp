@@ -1,19 +1,19 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import {createContext, useCallback, useContext, useState} from 'react'
 import * as signalR from '@microsoft/signalr'
-import { useAuth } from './AuthContext.jsx'
+import {useAuth} from './AuthContext.jsx'
 import api from '../api/api.js'
 
 const ChatContext = createContext()
 
-export function ChatProvider({ children }) {
-  const [messages, setMessages] = useState([])
-  const [connection, setConnection] = useState(null)
-  const [chatRoom, setChatRoom] = useState('')
-  const [userChats, setUserChats] = useState([])
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showJoinModal, setShowJoinModal] = useState(false)
-  const [newChatName, setNewChatName] = useState('')
-  const { user, logout } = useAuth()
+export function ChatProvider({children}) {
+    const [messages, setMessages] = useState([])
+    const [connection, setConnection] = useState(null)
+    const [chatRoom, setChatRoom] = useState('')
+    const [userChats, setUserChats] = useState([])
+    const [showCreateModal, setShowCreateModal] = useState(false)
+    const [showJoinModal, setShowJoinModal] = useState(false)
+    const [newChatName, setNewChatName] = useState('')
+    const {user, logout} = useAuth()
 
     const loadUserChats = useCallback(async () => {
         try {
@@ -41,13 +41,13 @@ export function ChatProvider({ children }) {
                 throw new Error("User is not logged in");
             }
 
-      if (!newChatName.trim()) {
-        throw new Error('Chat name cannot be empty')
-      }
+            if (!newChatName.trim()) {
+                throw new Error('Chat name cannot be empty')
+            }
 
-      const response = await api.post('/chats/create', {
-        name: newChatName.trim(),
-      })
+            const response = await api.post('/chats/create', {
+                name: newChatName.trim(),
+            })
 
             await loadUserChats();
             await joinChat(response.data.name);
@@ -67,19 +67,19 @@ export function ChatProvider({ children }) {
             throw new Error("User is not logged in");
         }
 
-    if (connection) {
-      try {
-        connection.off('ReceiveMessage')
-        connection.off('UserJoined')
-        connection.off('UserLeft')
-        await connection.stop()
-      } catch (error) {
-        console.error('Error closing previous connection:', error)
-      }
-    }
+        if (connection) {
+            try {
+                connection.off('ReceiveMessage')
+                connection.off('UserJoined')
+                connection.off('UserLeft')
+                await connection.stop()
+            } catch (error) {
+                console.error('Error closing previous connection:', error)
+            }
+        }
 
-    const tokenResponse = await api.get('/auth/token')
-    const token = tokenResponse.data.token
+        const tokenResponse = await api.get('/auth/token')
+        const token = tokenResponse.data.token
 
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl("http://localhost:8080/chat", {
@@ -163,77 +163,77 @@ export function ChatProvider({ children }) {
         }
     }
 
-  const sendMessage = async (message) => {
-    if (!connection || !message?.trim()) {
-      console.error('No active connection or empty message')
-      return
+    const sendMessage = async (message) => {
+        if (!connection || !message?.trim()) {
+            console.error('No active connection or empty message')
+            return
+        }
+
+        const messageId = crypto.randomUUID()
+
+        try {
+            setMessages((mes) => [
+                ...mes,
+                {
+                    userName: 'You',
+                    message: message.trim(),
+                    id: messageId,
+                    timestamp: new Date().toISOString(),
+                    isPending: true,
+                },
+            ])
+
+            await connection.invoke('SendMessage', message.trim(), messageId)
+
+            await connection.invoke('UpdateChatList')
+            setMessages((mes) =>
+                mes.map((msg) =>
+                    msg.id === messageId ? {...msg, isPending: false} : msg
+                )
+            )
+        } catch (error) {
+            console.error('Error sending message:', error)
+
+            setMessages((msg) => msg.filter((msg) => msg.id !== messageId))
+            alert('Failed to send message')
+        }
     }
 
-    const messageId = crypto.randomUUID()
-
-    try {
-      setMessages((mes) => [
-        ...mes,
-        {
-          userName: 'You',
-          message: message.trim(),
-          id: messageId,
-          timestamp: new Date().toISOString(),
-          isPending: true,
-        },
-      ])
-
-      await connection.invoke('SendMessage', message.trim(), messageId)
-
-      await connection.invoke('UpdateChatList')
-      setMessages((mes) =>
-        mes.map((msg) =>
-          msg.id === messageId ? { ...msg, isPending: false } : msg
-        )
-      )
-    } catch (error) {
-      console.error('Error sending message:', error)
-
-      setMessages((msg) => msg.filter((msg) => msg.id !== messageId))
-      alert('Failed to send message')
+    const closeChat = async () => {
+        if (connection) {
+            try {
+                await connection.stop()
+            } catch (error) {
+                console.error('Error stopping connection', error)
+            } finally {
+                setConnection(null)
+            }
+        }
     }
-  }
-
-  const closeChat = async () => {
-    if (connection) {
-      try {
-        await connection.stop()
-      } catch (error) {
-        console.error('Error stopping connection', error)
-      } finally {
-        setConnection(null)
-      }
-    }
-  }
-  return (
-    <ChatContext.Provider
-      value={{
-        messages,
-        connection,
-        chatRoom,
-        userChats,
-        showCreateModal,
-        showJoinModal,
-        loadUserChats,
-        createChat,
-        setShowCreateModal,
-        setShowJoinModal,
-        setNewChatName,
-        joinChat,
-        sendMessage,
-        closeChat,
-      }}
-    >
-      {children}
-    </ChatContext.Provider>
-  )
+    return (
+        <ChatContext.Provider
+            value={{
+                messages,
+                connection,
+                chatRoom,
+                userChats,
+                showCreateModal,
+                showJoinModal,
+                loadUserChats,
+                createChat,
+                setShowCreateModal,
+                setShowJoinModal,
+                setNewChatName,
+                joinChat,
+                sendMessage,
+                closeChat,
+            }}
+        >
+            {children}
+        </ChatContext.Provider>
+    )
 }
 
 export function useChat() {
-  return useContext(ChatContext)
+    return useContext(ChatContext)
 }

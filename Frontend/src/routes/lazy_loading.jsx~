@@ -1,7 +1,0 @@
-import { Suspense } from "react";
-
-export const LazyLoader = ({  component: Component }) => (
-    <Suspense fallback={<div>Loading...</div>}>
-        <Component />
-    </Suspense>
-);
