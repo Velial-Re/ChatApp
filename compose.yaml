@@ -19,8 +19,22 @@
       retries: 10
     restart: unless-stopped
 
+
+  frontend-chat:
+    build: ./Frontend
+    networks:
+      - app_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chat:
+        condition: service_started 
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
   chat:
-    build: .
+    build: ./Backend
     networks:
       - app_net
     environment:
