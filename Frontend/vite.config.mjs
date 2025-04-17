@@ -30,9 +30,14 @@ export default defineConfig(({ command, mode }) => {
     },
 
     server: {
+      host: true,
       port: 5173,
-      open: true,
+      strictPort: true,
+      open: false,
       historyApiFallback: true,
+      hmr: {
+        clientPort: 5173,
+      },
     },
 
     optimizeDeps: {

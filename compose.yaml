@@ -21,16 +21,23 @@
 
 
   frontend-chat:
-    build: ./Frontend
+    build: 
+      context: ./Frontend
+      target: development
     networks:
       - app_net
     depends_on:
-      postgres:
-        condition: service_healthy
       chat:
         condition: service_started 
     ports:
-      - "8080:8080"
+      - "5173:5173"
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_END=development
+      - VITE_HOST=0.0.0.0
     restart: unless-stopped
 
   chat:
