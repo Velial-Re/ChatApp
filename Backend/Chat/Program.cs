@@ -157,7 +157,7 @@ app.UseCookiePolicy(new CookiePolicyOptions
     HttpOnly = HttpOnlyPolicy.Always
 });
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseHsts();
 
 app.UseRouting();
