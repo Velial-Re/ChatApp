@@ -143,15 +143,12 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
     app.UseSwagger();
     app.UseSwaggerUI(s =>
     {
         s.SwaggerEndpoint("/swagger/v1/swagger.json", "Chat API v1");
         s.RoutePrefix = "swagger";
     });
-}
 
 app.UseCookiePolicy(new CookiePolicyOptions
 {
