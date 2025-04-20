@@ -1,24 +1,27 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/context/AuthContext.jsx'
+import { useDispatch, useSelector } from 'react-redux'
+import { loginAction } from '@/store/auth/authActions'
 
 export default function LoginForm() {
-  const { user, login } = useAuth()
-
+  const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (user) {
-      navigate('/')
-    }
-  }, [user, navigate])
+  const user = useSelector((state) => state.auth.user)
+  const isLoading = useSelector((state) => state.auth.isLoading)
+  const error = useSelector((state) => state.auth.error)
 
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   })
   const [errors, setErrors] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      navigate('/')
+    }
+  }, [user, navigate])
 
   const onChange = (e) => {
     const { name, value } = e.target
@@ -33,6 +36,7 @@ export default function LoginForm() {
       }))
     }
   }
+
   const validate = () => {
     const newErrors = {}
     if (!formData.username.trim()) {
@@ -49,26 +53,28 @@ export default function LoginForm() {
     e.preventDefault()
     if (!validate()) return
 
-    setIsLoading(true)
     try {
-      await login({
-        username: formData.username,
-        password: formData.password,
-      })
-      navigate('/')
-    } catch (error) {
+      await dispatch(
+        loginAction({
+          username: formData.username,
+          password: formData.password,
+        })
+      )
+    } catch (err) {
+      // Здесь ошибка уже в Redux `error`, но можно дополнительно показать локальную ошибку
       setErrors({
-        form: error.response?.data?.message || 'Ошибка авторизации',
+        form: err.message || 'Ошибка авторизации',
       })
-    } finally {
-      setIsLoading(false)
     }
   }
+
   return (
     <div className="login__container">
       <h2 className="login__title">Войти</h2>
-      {errors.form && (
-        <div className="error-message form__error">{errors.form}</div>
+      {(errors.form || error) && (
+        <div className="error-message form__error">
+          {errors.form || error}
+        </div>
       )}
       <form className="login__form" onSubmit={onLogin}>
         <div className="form__group">

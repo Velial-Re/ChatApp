@@ -1,9 +1,11 @@
-import { useAuth } from '../../context/AuthContext.jsx'
-import { useChat } from '../../context/ChatContext.jsx'
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { logoutAction } from '@/store/auth/authActions'
+import { useChat } from '../../context/ChatContext.jsx' // чат пока остаётся через context
 
 export const UserPanel = () => {
-  const { user, logout } = useAuth()
+  const dispatch = useDispatch()
+  const { user } = useSelector((state) => state.auth)
   const { closeChat } = useChat()
   const [username, setUsername] = useState('')
 
@@ -12,9 +14,10 @@ export const UserPanel = () => {
       setUsername(user.username)
     }
   }, [user])
+
   const onLogout = () => {
     closeChat()
-    logout()
+    dispatch(logoutAction())
   }
 
   return (

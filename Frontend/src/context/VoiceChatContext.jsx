@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { useAuth } from './AuthContext.jsx'
+import { useSelector } from 'react-redux'
 import { useChat } from './ChatContext.jsx'
 import * as signalR from '@microsoft/signalr'
 
@@ -17,7 +17,8 @@ export const VoiceChatProvider = ({ children }) => {
   const [localStream, setLocalStream] = useState(null)
   const [voiceParticipants, setVoiceParticipants] = useState([])
   const [remoteStreams, setRemoteStreams] = useState({})
-  const { user } = useAuth()
+  
+  const user = useSelector((state) => state.auth.user)
   const { chatRoom } = useChat()
 
   const joinVoiceChat = useCallback(async () => {
@@ -80,7 +81,9 @@ export const VoiceChatProvider = ({ children }) => {
     setRemoteStreams({})
   }, [voiceConnection, chatRoom, user, localStream])
 
-  const onSignal = useCallback((userId, signal) => {}, [])
+  const onSignal = useCallback((userId, signal) => {
+    // обработка сигнала WebRTC
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -89,6 +92,7 @@ export const VoiceChatProvider = ({ children }) => {
       }
     }
   }, [voiceConnection, leaveVoiceChat])
+
   return (
     <VoiceChatContext.Provider
       value={{

@@ -1,22 +1,30 @@
-import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { Provider, useDispatch, useSelector } from 'react-redux'
+import { store } from './store/store.js' // твой Redux store
 import { ChatProvider } from './context/ChatContext.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { AppRoutes } from './routes/routes.jsx'
+import { useEffect } from 'react'
+import { fetchUserAction } from './store/auth/authActions.js'
 
 const AppWrapper = () => {
   return (
-    <AuthProvider>
+    <Provider store={store}>
       <ChatProvider>
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>
       </ChatProvider>
-    </AuthProvider>
+    </Provider>
   )
 }
 
 const AppContent = () => {
-  const { isLoading } = useAuth()
+  const dispatch = useDispatch()
+  const isLoading = useSelector((state) => state.auth.isLoading)
+
+  useEffect(() => {
+    dispatch(fetchUserAction())
+  }, [dispatch])
 
   if (isLoading) {
     return <div>Loading...</div>
