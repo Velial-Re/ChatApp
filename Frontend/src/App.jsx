@@ -6,7 +6,6 @@ import { AppRoutes } from './routes/routes.jsx'
 import { useEffect } from 'react'
 import { fetchUserAction } from './store/auth/authActions'
 
-
 const AppWrapper = () => {
   return (
     <Provider store={store}>

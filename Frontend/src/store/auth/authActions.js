@@ -4,12 +4,12 @@ import api from '../../api/api'
 // Экшены
 export const loginAction = (userData) => async (dispatch) => {
   try {
-    dispatch(setLoading(true))  // Changed from false to true
+    dispatch(setLoading(true)) // Changed from false to true
     const response = await api.post('auth/login', {
       username: userData.username,
       password: userData.password,
     })
-    dispatch(setUser(response.data))  // Changed to use full response data
+    dispatch(setUser(response.data)) // Changed to use full response data
     dispatch(setLoading(false))
   } catch (error) {
     dispatch(setLoading(false))
@@ -17,7 +17,6 @@ export const loginAction = (userData) => async (dispatch) => {
     console.error('Login failed', error)
   }
 }
-
 
 export const logoutAction = () => async (dispatch) => {
   try {

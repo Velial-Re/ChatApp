@@ -46,6 +46,7 @@ body {
   color: var(--text-normal);
   background-color: var(--bg-primary);
   line-height: 1.5;
+  height: 100vh;
 }
 
 a {
@@ -89,4 +90,12 @@ textarea {
     outline: none;
     box-shadow: 0 0 0 2px var(--primary);
   }
+}
+
+
+#root{
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }

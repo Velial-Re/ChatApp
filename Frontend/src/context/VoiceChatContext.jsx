@@ -11,7 +11,7 @@ export const VoiceChatProvider = ({ children }) => {
   const [localStream, setLocalStream] = useState(null)
   const [voiceParticipants, setVoiceParticipants] = useState([])
   const [remoteStreams, setRemoteStreams] = useState({})
-  
+
   const user = useSelector((state) => state.auth.user)
   const { chatRoom } = useChat()
 
