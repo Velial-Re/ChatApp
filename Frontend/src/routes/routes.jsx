@@ -1,33 +1,27 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { ROUTE_PATHS } from './route_paths'
-import { ROUTE_ELEMENTS } from './route_elements'
+// AppRoutes.tsx
+import { Routes, Route } from 'react-router-dom';
+import { route_map } from './route_zmap';
 
 export const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route path={ROUTE_PATHS.AUTH} element={ROUTE_ELEMENTS.AUTH}>
-        <Route path="login" element={ROUTE_ELEMENTS.LOGIN_FORM} />
-        <Route path="registration" element={ROUTE_ELEMENTS.REGISTRATION_FORM} />
-        <Route index element={<Navigate to="login" replace />} />
-      </Route>
+  const renderRoutes = (routes) => {
+    return routes.map((route, index) => {
+      if (route.children) {
+        return (
+          <Route key={index} path={route.path} element={route.element}>
+            {renderRoutes(route.children)}
+          </Route>
+        );
+      }
+      return (
+        <Route
+          key={index}
+          path={route.path}
+          element={route.element}
+          index={route.index}
+        />
+      );
+    });
+  };
 
-      <Route path={ROUTE_PATHS.ROOT} element={ROUTE_ELEMENTS.PROTECTED_MAIN}>
-        <Route index element={ROUTE_ELEMENTS.WELCOME} />
-        <Route path={ROUTE_PATHS.CHAT} element={ROUTE_ELEMENTS.CHAT_PAGE} />
-      </Route>
-
-      <Route
-        path={ROUTE_PATHS.LOGIN}
-        element={<Navigate to={`${ROUTE_PATHS.AUTH}/login`} replace />}
-      />
-      <Route
-        path={ROUTE_PATHS.REGISTER}
-        element={<Navigate to={`${ROUTE_PATHS.AUTH}/registration`} replace />}
-      />
-      <Route
-        path={ROUTE_PATHS.WILDCARD}
-        element={<Navigate to={ROUTE_PATHS.ROOT} replace />}
-      />
-    </Routes>
-  )
-}
+  return <Routes>{renderRoutes(route_map)}</Routes>;
+};
