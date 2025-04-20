@@ -1,6 +1,6 @@
-import { Navigate } from 'react-router-dom';
-import { ROUTE_PATHS } from './route_paths';
-import { ROUTE_ELEMENTS } from './route_elements';
+import { Navigate } from 'react-router-dom'
+import { ROUTE_PATHS } from './route_paths'
+import { ROUTE_ELEMENTS } from './route_elements'
 
 export const route_map = [
   {
@@ -32,4 +32,4 @@ export const route_map = [
     path: ROUTE_PATHS.WILDCARD,
     element: <Navigate to={ROUTE_PATHS.ROOT} replace />,
   },
-];
+]

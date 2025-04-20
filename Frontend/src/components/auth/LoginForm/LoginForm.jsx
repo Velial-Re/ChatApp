@@ -71,11 +71,7 @@ export default function LoginForm() {
   return (
     <div className="login__container">
       <h2 className="login__title">Войти</h2>
-      {(errors.form || error) && (
-        <div className="error-message form__error">
-          {errors.form || error}
-        </div>
-      )}
+      {errors.form && <div className="error-message form__error">{errors.form}</div>}
       <form className="login__form" onSubmit={onLogin}>
         <div className="form__group">
           <label className="form__label">Имя пользователя</label>
@@ -88,9 +84,7 @@ export default function LoginForm() {
             placeholder="Введите ваше имя"
             disabled={isLoading}
           />
-          {errors.username && (
-            <span className="error-message">{errors.username}</span>
-          )}
+          {errors.username && <span className="error-message">{errors.username}</span>}
         </div>
         <div className="form__group">
           <label className="form__label">Пароль</label>
@@ -103,9 +97,7 @@ export default function LoginForm() {
             placeholder="Введите ваш пароль"
             disabled={isLoading}
           />
-          {errors.password && (
-            <span className="error-message">{errors.password}</span>
-          )}
+          {errors.password && <span className="error-message">{errors.password}</span>}
         </div>
         <button type="submit" className="form__button" disabled={isLoading}>
           {isLoading ? 'Вход...' : 'Войти'}

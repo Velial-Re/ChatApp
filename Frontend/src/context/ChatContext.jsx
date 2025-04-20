@@ -13,7 +13,14 @@ export const ChatProvider = ({ children }) => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [newChatName, setNewChatName] = useState('')
-  const { user, logout } = useAuth()
+  
+  // Проверка на существование данных из useAuth
+  const { user, logout } = useAuth() || {} // Возвращаем пустой объект, если useAuth() не удалось получить данные
+
+  if (!user) {
+    // Можешь добавить рендеринг "Loading..." или что-то, что будет показываться, пока данные не загрузятся
+    return <div>Loading...</div>
+  }
 
   const loadUserChats = useCallback(async () => {
     try {
@@ -195,9 +202,7 @@ export const ChatProvider = ({ children }) => {
 
       await connection.invoke('UpdateChatList')
       setMessages((mes) =>
-        mes.map((msg) =>
-          msg.id === messageId ? { ...msg, isPending: false } : msg
-        )
+        mes.map((msg) => (msg.id === messageId ? { ...msg, isPending: false } : msg))
       )
     } catch (error) {
       console.error('Error sending message:', error)
@@ -218,6 +223,7 @@ export const ChatProvider = ({ children }) => {
       }
     }
   }
+
   return (
     <ChatContext.Provider
       value={{

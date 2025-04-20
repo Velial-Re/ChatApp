@@ -12,11 +12,7 @@ export const JoinChatModal = () => {
   }
 
   return (
-    <Modal
-      active={showJoinModal}
-      setActive={setShowJoinModal}
-      title="Присоединиться к чату"
-    >
+    <Modal active={showJoinModal} setActive={setShowJoinModal} title="Присоединиться к чату">
       <input
         type="text"
         value={chatName}
@@ -31,10 +27,7 @@ export const JoinChatModal = () => {
         >
           Отмена
         </button>
-        <button
-          onClick={onJoin}
-          className="modal__button modal__button--confirm"
-        >
+        <button onClick={onJoin} className="modal__button modal__button--confirm">
           Присоединиться
         </button>
       </div>

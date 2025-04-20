@@ -1,10 +1,11 @@
 import { Provider, useDispatch, useSelector } from 'react-redux'
-import { store } from './store/store.js' // твой Redux store
+import store from './store/store.js'
 import { ChatProvider } from './context/ChatContext.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { AppRoutes } from './routes/routes.jsx'
 import { useEffect } from 'react'
-import { fetchUserAction } from './store/auth/authActions.js'
+import { fetchUserAction } from './store/auth/authActions'
+
 
 const AppWrapper = () => {
   return (

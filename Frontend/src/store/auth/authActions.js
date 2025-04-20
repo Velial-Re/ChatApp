@@ -4,7 +4,7 @@ import api from '../../api/api'
 // Экшены
 export const loginAction = (userData) => async (dispatch) => {
   try {
-    dispatch(setLoading(true))
+    dispatch(setLoading(false))
     const response = await api.post('auth/login', {
       username: userData.username,
       password: userData.password,
