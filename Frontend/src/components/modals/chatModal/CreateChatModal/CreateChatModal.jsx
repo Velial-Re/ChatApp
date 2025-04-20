@@ -2,20 +2,11 @@ import { useChat } from '../../../../context/ChatContext.jsx'
 import Modal from '../../Modal/Modal.jsx'
 
 export const CreateChatModal = () => {
-  const {
-    newChatName,
-    setNewChatName,
-    createChat,
-    showCreateModal,
-    setShowCreateModal,
-  } = useChat()
+  const { newChatName, setNewChatName, createChat, showCreateModal, setShowCreateModal } =
+    useChat()
 
   return (
-    <Modal
-      active={showCreateModal}
-      setActive={setShowCreateModal}
-      title="Создать новый чат"
-    >
+    <Modal active={showCreateModal} setActive={setShowCreateModal} title="Создать новый чат">
       <input
         type="text"
         value={newChatName}
@@ -30,10 +21,7 @@ export const CreateChatModal = () => {
         >
           Отмена
         </button>
-        <button
-          className="modal__button modal__button--confirm"
-          onClick={createChat}
-        >
+        <button className="modal__button modal__button--confirm" onClick={createChat}>
           Создать
         </button>
       </div>

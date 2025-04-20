@@ -195,9 +195,7 @@ export const ChatProvider = ({ children }) => {
 
       await connection.invoke('UpdateChatList')
       setMessages((mes) =>
-        mes.map((msg) =>
-          msg.id === messageId ? { ...msg, isPending: false } : msg
-        )
+        mes.map((msg) => (msg.id === messageId ? { ...msg, isPending: false } : msg))
       )
     } catch (error) {
       console.error('Error sending message:', error)

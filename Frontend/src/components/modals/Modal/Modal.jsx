@@ -3,10 +3,7 @@ import { CloseButton } from '../../UI/CloseButton.jsx'
 
 const Modal = ({ active, setActive, children, title }) => {
   return (
-    <div
-      className={active ? 'modal active' : 'modal'}
-      onClick={() => setActive(false)}
-    >
+    <div className={active ? 'modal active' : 'modal'} onClick={() => setActive(false)}>
       <div
         className={active ? 'modal__wrapper active' : 'modal__wrapper'}
         onClick={(event) => event.stopPropagation()}

@@ -9,10 +9,6 @@ export const lazyImport = {
     () => import('@/components/auth/RegistrationForm/RegistrationForm.jsx')
   ),
   Chat: lazy(() => import('@/components/chat/Chat/Chat.jsx')),
-  ChatDashboard: lazy(
-    () => import('@/components/chat/ChatDashboard/ChatDashboard.jsx')
-  ),
-  ProtectedRoute: lazy(
-    () => import('@/components/ProtectedRoute/ProtectedRoute.jsx')
-  ),
+  ChatDashboard: lazy(() => import('@/components/chat/ChatDashboard/ChatDashboard.jsx')),
+  ProtectedRoute: lazy(() => import('@/components/ProtectedRoute/ProtectedRoute.jsx')),
 }

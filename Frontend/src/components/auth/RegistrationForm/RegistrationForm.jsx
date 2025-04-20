@@ -88,9 +88,7 @@ export default function RegistrationForm() {
             onChange={onChange}
             placeholder="Введите ваше имя"
           />
-          {errors.username && (
-            <span className="error-message">{errors.username}</span>
-          )}
+          {errors.username && <span className="error-message">{errors.username}</span>}
         </div>
         <div className="form__group">
           <label className="form__label">Email</label>
@@ -102,9 +100,7 @@ export default function RegistrationForm() {
             onChange={onChange}
             placeholder="Введите ваш email"
           />
-          {errors.email && (
-            <span className="error-message">{errors.email}</span>
-          )}
+          {errors.email && <span className="error-message">{errors.email}</span>}
         </div>
         <div className="form__group">
           <label className="form__label">Пароль</label>
@@ -116,9 +112,7 @@ export default function RegistrationForm() {
             type="password"
             placeholder="Введите ваш пароль"
           />
-          {errors.password && (
-            <span className="error-message">{errors.password}</span>
-          )}
+          {errors.password && <span className="error-message">{errors.password}</span>}
         </div>
         <div className="form__group">
           <label className="form__label">Повторите пароль</label>

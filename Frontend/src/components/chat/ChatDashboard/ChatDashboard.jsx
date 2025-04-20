@@ -48,16 +48,10 @@ export default function ChatDashboard() {
       </div>
 
       <div className="dashboard__actions">
-        <button
-          className="dashboard__action"
-          onClick={() => setShowCreateModal(true)}
-        >
+        <button className="dashboard__action" onClick={() => setShowCreateModal(true)}>
           <i className="">Создать чат</i>
         </button>
-        <button
-          className="dashboard__action"
-          onClick={() => setShowJoinModal(true)}
-        >
+        <button className="dashboard__action" onClick={() => setShowJoinModal(true)}>
           <i className="">Присоединиться</i>
         </button>
       </div>

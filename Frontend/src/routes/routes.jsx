@@ -1,6 +1,6 @@
 // AppRoutes.tsx
-import { Routes, Route } from 'react-router-dom';
-import { route_map } from './route_zmap';
+import { Routes, Route } from 'react-router-dom'
+import { route_map } from './route_zmap'
 
 export const AppRoutes = () => {
   const renderRoutes = (routes) => {
@@ -10,18 +10,13 @@ export const AppRoutes = () => {
           <Route key={index} path={route.path} element={route.element}>
             {renderRoutes(route.children)}
           </Route>
-        );
+        )
       }
       return (
-        <Route
-          key={index}
-          path={route.path}
-          element={route.element}
-          index={route.index}
-        />
-      );
-    });
-  };
+        <Route key={index} path={route.path} element={route.element} index={route.index} />
+      )
+    })
+  }
 
-  return <Routes>{renderRoutes(route_map)}</Routes>;
-};
+  return <Routes>{renderRoutes(route_map)}</Routes>
+}

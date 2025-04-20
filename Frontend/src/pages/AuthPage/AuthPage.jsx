@@ -56,9 +56,7 @@ export default function AuthPage() {
         </button>
         <span className="auth__tabs-indicator" data-active-tab={activeTab} />
       </div>
-      <div className="auth__form-container">
-        {renderForm()}
-      </div>
+      <div className="auth__form-container">{renderForm()}</div>
     </div>
   )
 }
