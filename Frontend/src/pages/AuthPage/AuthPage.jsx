@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LazyLoader } from '../../routes/lazy_loading'
 import { lazyImport } from '../../routes/lazy_import'
 
@@ -26,6 +20,25 @@ export default function AuthPage() {
     navigate(`/auth/${tab}`)
   }
 
+  const renderForm = () => {
+    switch (activeTab) {
+      case 'login':
+        return (
+          <LazyLoader>
+            <lazyImport.LoginForm />
+          </LazyLoader>
+        )
+      case 'registration':
+        return (
+          <LazyLoader>
+            <lazyImport.RegistrationForm />
+          </LazyLoader>
+        )
+      default:
+        return <Navigate to="login" replace />
+    }
+  }
+
   return (
     <div className="auth__container">
       <div className="auth__tabs">
@@ -44,25 +57,7 @@ export default function AuthPage() {
         <span className="auth__tabs-indicator" data-active-tab={activeTab} />
       </div>
       <div className="auth__form-container">
-        <Routes>
-          <Route
-            path="login"
-            element={
-              <LazyLoader>
-                <lazyImport.LoginForm />
-              </LazyLoader>
-            }
-          />
-          <Route
-            path="registration"
-            element={
-              <LazyLoader>
-                <lazyImport.RegistrationForm />
-              </LazyLoader>
-            }
-          />
-          <Route index element={<Navigate to="login" replace />} />
-        </Routes>
+        {renderForm()}
       </div>
     </div>
   )

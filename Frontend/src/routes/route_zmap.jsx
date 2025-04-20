@@ -1,4 +1,3 @@
-// route_map.ts
 import { Navigate } from 'react-router-dom';
 import { ROUTE_PATHS } from './route_paths';
 import { ROUTE_ELEMENTS } from './route_elements';
