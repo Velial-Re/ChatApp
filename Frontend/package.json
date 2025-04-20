@@ -11,12 +11,14 @@
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.7",
+    "@reduxjs/toolkit": "^2.7.0",
     "axios": "^1.8.4",
     "eslint-plugin-prettier": "^5.2.6",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.0",
     "sass": "^1.86.3",
     "universal-cookie": "^8.0.1"
