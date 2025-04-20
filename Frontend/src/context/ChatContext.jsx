@@ -1,11 +1,14 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useState, useEffect } from 'react'
 import * as signalR from '@microsoft/signalr'
-import { useAuth } from './AuthContext.jsx'
+import { useDispatch, useSelector } from 'react-redux'
+import { setUser, setLoading, setError } from '../store/auth/authSlice'
 import api from '../api/api.js'
 
 const ChatContext = createContext()
 
 export const ChatProvider = ({ children }) => {
+  const dispatch = useDispatch()
+  const { user } = useSelector((state) => state.auth)
   const [messages, setMessages] = useState([])
   const [connection, setConnection] = useState(null)
   const [chatRoom, setChatRoom] = useState('')
@@ -13,14 +16,15 @@ export const ChatProvider = ({ children }) => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [newChatName, setNewChatName] = useState('')
-  
-  // Проверка на существование данных из useAuth
-  const { user, logout } = useAuth() || {} // Возвращаем пустой объект, если useAuth() не удалось получить данные
+  const [isChatLoading, setIsChatLoading] = useState(true)
 
-  if (!user) {
-    // Можешь добавить рендеринг "Loading..." или что-то, что будет показываться, пока данные не загрузятся
-    return <div>Loading...</div>
-  }
+  useEffect(() => {
+    if (user) {
+      loadUserChats().finally(() => setIsChatLoading(false))
+    } else {
+      setIsChatLoading(false)
+    }
+  }, [user])
 
   const loadUserChats = useCallback(async () => {
     try {
@@ -35,13 +39,13 @@ export const ChatProvider = ({ children }) => {
       return response.data
     } catch (error) {
       if (error.response?.status === 401) {
-        logout()
+        dispatch(logoutAction())
         return
       }
       console.error('Error loading user chats', error)
       throw new Error('Failed to load user chats')
     }
-  }, [chatRoom, logout])
+  }, [chatRoom, dispatch])
 
   const createChat = async () => {
     try {
@@ -233,6 +237,7 @@ export const ChatProvider = ({ children }) => {
         userChats,
         showCreateModal,
         showJoinModal,
+        isChatLoading,
         loadUserChats,
         createChat,
         setShowCreateModal,
@@ -249,5 +254,9 @@ export const ChatProvider = ({ children }) => {
 }
 
 export function useChat() {
-  return useContext(ChatContext)
+  const context = useContext(ChatContext)
+  if (!context) {
+    throw new Error('useChat must be used within a ChatProvider')
+  }
+  return context
 }
