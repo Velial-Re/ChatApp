@@ -34,13 +34,14 @@ export default function Chat() {
         <h2 className="chat-title">{chatRoom}</h2>
       </div>
       <div className="chat__messages-list">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <Message
+            key={`${message.id}-${message.timestamp}`} // Unique key using both id and timestamp
             message={message.message}
             userName={message.userName}
-            key={message.id || index}
           />
         ))}
+
         <span ref={messageEndRef} />
       </div>
       <div className="chat__input-container">
@@ -59,3 +60,4 @@ export default function Chat() {
     </div>
   )
 }
+

@@ -1,18 +1,28 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import * as signalR from '@microsoft/signalr'
 import api from '../../api/api'
-import { setMessages, addMessage, updateMessage, removeMessage, setChatRoom, setUserChats, setIsChatLoading, resetChatState } from './chatActions'
+import {
+  setMessages,
+  addMessage,
+  updateMessage,
+  removeMessage,
+  setChatRoom,
+  setUserChats,
+  setIsChatLoading,
+  resetChatState,
+} from './chatActions'
 import { logout } from '../auth/authSlice'
 import { chatSliceActions } from './chatSlice'
 
 const { setConnectionStatus } = chatSliceActions
 
+// Локальное подключение, не хранится в state
 let connection = null
 
 export const loadUserChats = createAsyncThunk('chat/loadUserChats', async (_, { dispatch, getState }) => {
   const { chatRoom } = getState().chat
   try {
-    dispatch(setIsChatLoading(true)) 
+    dispatch(setIsChatLoading(true))
     const response = await api.get('/chats/my')
     dispatch(setUserChats(
       response.data.map(chat => ({
@@ -28,7 +38,7 @@ export const loadUserChats = createAsyncThunk('chat/loadUserChats', async (_, { 
       console.error('Ошибка при загрузке чатов:', e)
     }
   } finally {
-    dispatch(setIsChatLoading(false)) 
+    dispatch(setIsChatLoading(false))
   }
 })
 
@@ -49,8 +59,9 @@ export const createChat = createAsyncThunk('chat/createChat', async (_, { getSta
 })
 
 export const sendMessage = createAsyncThunk('chat/sendMessage', async (text, { getState, dispatch }) => {
-  const { chat: { connection } } = getState()
-  if (!connection || !text?.trim()) return
+  // Вместо state.chat.connection берём нашу внешнюю переменную
+  const { isConnected } = getState().chat
+  if (!connection || !isConnected || !text?.trim()) return
 
   const messageId = crypto.randomUUID()
   const trimmed = text.trim()
@@ -89,20 +100,16 @@ export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isS
   const { auth: { user }, chat: { isConnected } } = getState()
 
   if (!user) throw new Error('Вы не авторизованы')
-
   if (isConnected) return
 
-  dispatch(setIsChatLoading(true)) 
+  dispatch(setIsChatLoading(true))
 
+  // При повторном подключении «чистим» старое подключение
   if (connection) {
-    try {
-      connection.off('ReceiveMessage')
-      connection.off('UserJoined')
-      connection.off('UserLeft')
-      await connection.stop()
-    } catch (e) {
-      console.error('Ошибка отключения соединения:', e)
-    }
+    connection.off('ReceiveMessage')
+    connection.off('UserJoined')
+    connection.off('UserLeft')
+    await connection.stop().catch(console.error)
   }
 
   const { data: { token } } = await api.get('/auth/token')
