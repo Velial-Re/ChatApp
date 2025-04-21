@@ -1,60 +1,62 @@
-import { setUser, setLoading, setError } from './authSlice'
+import { setUser, setLoading, setError, logout } from './authSlice'
 import api from '../../api/api'
 
-// Экшены
+// Логин
 export const loginAction = (userData) => async (dispatch) => {
+  dispatch(setLoading(true))
   try {
-    dispatch(setLoading(true)) // Changed from false to true
     const response = await api.post('auth/login', {
       username: userData.username,
       password: userData.password,
     })
-    dispatch(setUser(response.data)) // Changed to use full response data
-    dispatch(setLoading(false))
+    dispatch(setUser(response.data))
   } catch (error) {
+    dispatch(setError(error.response?.data?.message || 'Ошибка входа'))
+    console.error('Login failed:', error)
+  } finally {
     dispatch(setLoading(false))
-    dispatch(setError(error.response?.data?.message || 'Login failed'))
-    console.error('Login failed', error)
   }
 }
 
+// Логаут
 export const logoutAction = () => async (dispatch) => {
+  dispatch(setLoading(true))
   try {
-    dispatch(setLoading(true))
     await api.post('auth/logout')
-    dispatch(setUser(null))
-    dispatch(setLoading(false))
+    dispatch(logout()) // очищаем стейт через слайс
   } catch (error) {
+    dispatch(setError(error.message || 'Ошибка выхода'))
+    console.error('Logout failed:', error)
+  } finally {
     dispatch(setLoading(false))
-    dispatch(setError(error.message))
-    console.error('Logout failed', error)
   }
 }
 
+// Получение текущего пользователя
 export const fetchUserAction = () => async (dispatch) => {
+  dispatch(setLoading(true))
   try {
-    dispatch(setLoading(true))
     const response = await api.get('auth/user')
     dispatch(setUser(response.data))
-    dispatch(setLoading(false))
   } catch (error) {
-    dispatch(setLoading(false))
-    // Only set error if it's not a 401 (unauthorized)
     if (error.response?.status !== 401) {
-      dispatch(setError(error.message))
+      dispatch(setError(error.message || 'Ошибка получения пользователя'))
     }
-    console.error('Fetch user failed', error)
+    console.error('Fetch user failed:', error)
+  } finally {
+    dispatch(setLoading(false))
   }
 }
 
+// Обновление токена
 export const refreshAuthAction = () => async (dispatch) => {
+  dispatch(setLoading(true))
   try {
-    dispatch(setLoading(true))
     await api.post('auth/refresh')
-    dispatch(setLoading(false))
   } catch (error) {
+    dispatch(setError(error.message || 'Ошибка обновления сессии'))
+    console.error('Refresh failed:', error)
+  } finally {
     dispatch(setLoading(false))
-    dispatch(setError(error.message))
-    console.error('Refresh failed', error)
   }
 }
