@@ -1,7 +1,6 @@
 import { setUser, setLoading, setError, logout } from './authSlice'
 import api from '../../api/api'
 
-// Логин
 export const loginAction = (userData) => async (dispatch) => {
   dispatch(setLoading(true))
   try {
@@ -18,7 +17,7 @@ export const loginAction = (userData) => async (dispatch) => {
   }
 }
 
-// Логаут
+
 export const logoutAction = () => async (dispatch) => {
   dispatch(setLoading(true))
   try {
@@ -32,7 +31,6 @@ export const logoutAction = () => async (dispatch) => {
   }
 }
 
-// Получение текущего пользователя
 export const fetchUserAction = () => async (dispatch) => {
   dispatch(setLoading(true))
   try {
@@ -48,7 +46,6 @@ export const fetchUserAction = () => async (dispatch) => {
   }
 }
 
-// Обновление токена
 export const refreshAuthAction = () => async (dispatch) => {
   dispatch(setLoading(true))
   try {

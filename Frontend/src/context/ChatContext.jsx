@@ -152,10 +152,14 @@ export const ChatProvider = ({ children }) => {
 
       await newConnection.start()
 
-      await newConnection.invoke('JoinChat', {
-        UserName: user.username,
-        ChatRoom: roomName,
-      }, isSwitching)
+      await newConnection.invoke(
+        'JoinChat',
+        {
+          UserName: user.username,
+          ChatRoom: roomName,
+        },
+        isSwitching
+      )
 
       await loadUserChats()
 
