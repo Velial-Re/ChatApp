@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { sendMessage } from '../../../store/chat/chatThunks.js'
+import { selectMessages, selectCurrentRoom } from '../../../store/chat/chatSelectors.js'
 import { Message } from '../Message/Message.jsx'
-import { useChat } from '../../../context/ChatContext.jsx'
 
 export default function Chat() {
-  const { messages, chatRoom, sendMessage } = useChat()
+  const dispatch = useDispatch()
+  const messages = useSelector(selectMessages)
+  const chatRoom = useSelector(selectCurrentRoom)
   const [message, setMessage] = useState('')
   const messageEndRef = useRef(null)
 
@@ -13,7 +17,7 @@ export default function Chat() {
 
   const onSendMessage = () => {
     if (message.trim()) {
-      sendMessage(message)
+      dispatch(sendMessage(message))
       setMessage('')
     }
   }

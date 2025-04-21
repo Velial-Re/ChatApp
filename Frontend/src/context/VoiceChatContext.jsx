@@ -5,9 +5,9 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { useSelector } from 'react-redux'
-import { useChat } from './ChatContext.jsx'
+import { useSelector, useDispatch } from 'react-redux'
 import * as signalR from '@microsoft/signalr'
+import { setVoiceParticipants } from '@/store/chat/chatActions' // экшен для обновления участников
 
 const VoiceChatContext = createContext()
 
@@ -15,11 +15,11 @@ export const VoiceChatProvider = ({ children }) => {
   const [voiceConnection, setVoiceConnection] = useState(null)
   const [isInVoiceChat, setIsInVoiceChat] = useState(false)
   const [localStream, setLocalStream] = useState(null)
-  const [voiceParticipants, setVoiceParticipants] = useState([])
   const [remoteStreams, setRemoteStreams] = useState({})
 
   const user = useSelector((state) => state.auth.user)
-  const { chatRoom } = useChat()
+  const chatRoom = useSelector((state) => state.chat.currentChatRoom) // получаем название текущего чата из Redux
+  const dispatch = useDispatch()
 
   const joinVoiceChat = useCallback(async () => {
     try {
@@ -35,11 +35,11 @@ export const VoiceChatProvider = ({ children }) => {
         .build()
 
       connection.on('UserJoinedVoice', (userId) => {
-        setVoiceParticipants((prev) => [...prev, userId])
+        dispatch(setVoiceParticipants((prev) => [...prev, userId]))
       })
 
       connection.on('UserLeftVoice', (userId) => {
-        setVoiceParticipants((prev) => prev.filter((id) => id !== userId))
+        dispatch(setVoiceParticipants((prev) => prev.filter((id) => id !== userId)))
         setRemoteStreams((prev) => {
           const newStreams = { ...prev }
           delete newStreams[userId]
@@ -63,7 +63,7 @@ export const VoiceChatProvider = ({ children }) => {
         setLocalStream(null)
       }
     }
-  }, [chatRoom, user])
+  }, [chatRoom, user, dispatch, localStream])
 
   const leaveVoiceChat = useCallback(async () => {
     try {
@@ -79,12 +79,12 @@ export const VoiceChatProvider = ({ children }) => {
       }
 
       setIsInVoiceChat(false)
-      setVoiceParticipants([])
       setRemoteStreams({})
+      dispatch(setVoiceParticipants([])) // очищаем список участников через Redux
     } catch (error) {
       console.error('Error leaving voice chat', error)
     }
-  }, [voiceConnection, chatRoom, user, localStream])
+  }, [voiceConnection, chatRoom, user, localStream, dispatch])
 
   const onSignal = useCallback((userId, signal) => {
     // Обработка сигнала WebRTC
@@ -104,8 +104,6 @@ export const VoiceChatProvider = ({ children }) => {
         joinVoiceChat,
         leaveVoiceChat,
         isInVoiceChat,
-        voiceParticipants,
-        localStream,
         remoteStreams,
       }}
     >

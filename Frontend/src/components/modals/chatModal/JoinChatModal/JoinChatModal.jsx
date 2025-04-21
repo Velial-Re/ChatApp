@@ -1,18 +1,22 @@
-import { useChat } from '../../../../context/ChatContext.jsx'
+import { useDispatch, useSelector } from 'react-redux'
 import { useState } from 'react'
 import Modal from '../../Modal/Modal.jsx'
+import { joinChat } from '@/store/chat/chatThunks.js'  // Импортируйте joinChat из chatThunks.js
+import { setShowJoinModal } from '@/store/chat/chatActions.js'
+
 
 export const JoinChatModal = () => {
   const [chatName, setChatName] = useState('')
-  const { showJoinModal, setShowJoinModal, joinChat } = useChat()
+  const dispatch = useDispatch()
+  const showJoinModal = useSelector((state) => state.chat.showJoinModal)
 
   const onJoin = () => {
-    joinChat(chatName, false)
-    setShowJoinModal(false)
+    dispatch(joinChat(chatName, false))
+    dispatch(setShowJoinModal(false)) // Скрыть модалку после присоединения
   }
 
   return (
-    <Modal active={showJoinModal} setActive={setShowJoinModal} title="Присоединиться к чату">
+    <Modal active={showJoinModal} setActive={(active) => dispatch(setShowJoinModal(active))} title="Присоединиться к чату">
       <input
         type="text"
         value={chatName}
@@ -22,7 +26,7 @@ export const JoinChatModal = () => {
       />
       <div className="modal__actions">
         <button
-          onClick={() => setShowJoinModal(false)}
+          onClick={() => dispatch(setShowJoinModal(false))}
           className="modal__button modal__button--cancel"
         >
           Отмена

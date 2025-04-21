@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { useChat } from '../../../context/ChatContext.jsx'
+import { useDispatch } from 'react-redux'
+import { joinChat } from '../../../store/chat/chatThunks.js'
 
 export const WaitingRoom = () => {
-  const [userName, setUserName] = useState()
-  const [chatRoom, setChatRoom] = useState()
-  const { joinChat } = useChat()
+  const [userName, setUserName] = useState('')
+  const [chatRoom, setChatRoom] = useState('')
+  const dispatch = useDispatch()
 
   const onSubmit = (e) => {
     e.preventDefault()
@@ -12,7 +13,7 @@ export const WaitingRoom = () => {
       alert('Имя и название чата не могут быть пустыми')
       return
     }
-    joinChat(userName.trim(), chatRoom.trim())
+    dispatch(joinChat({ userName: userName.trim(), chatRoom: chatRoom.trim() }))
   }
 
   return (
@@ -22,9 +23,7 @@ export const WaitingRoom = () => {
         <label className="form__label">Введите ваше имя</label>
         <input
           className="form__input"
-          onChange={(e) => {
-            setUserName(e.target.value)
-          }}
+          onChange={(e) => setUserName(e.target.value)}
           type="text"
           placeholder="Введите ваше имя"
         />
@@ -33,9 +32,7 @@ export const WaitingRoom = () => {
         <label className="form__label">Название чата</label>
         <input
           className="form__input"
-          onChange={(e) => {
-            setChatRoom(e.target.value)
-          }}
+          onChange={(e) => setChatRoom(e.target.value)}
           type="text"
           placeholder="Введите название чата"
         />
