@@ -1,5 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { useAuth } from './AuthContext.jsx'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
+import { useSelector } from 'react-redux'
 import { useChat } from './ChatContext.jsx'
 import * as signalR from '@microsoft/signalr'
 
@@ -60,23 +66,28 @@ export const VoiceChatProvider = ({ children }) => {
   }, [chatRoom, user])
 
   const leaveVoiceChat = useCallback(async () => {
-    if (voiceConnection) {
-      await voiceConnection.invoke('LeaveVoiceChat', chatRoom, user.username)
-      await voiceConnection.stop()
-      setVoiceConnection(null)
-    }
+    try {
+      if (voiceConnection) {
+        await voiceConnection.invoke('LeaveVoiceChat', chatRoom, user.username)
+        await voiceConnection.stop()
+        setVoiceConnection(null)
+      }
 
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop())
-    }
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop())
+        setLocalStream(null)
+      }
 
-    setIsInVoiceChat(false)
-    setVoiceParticipants([])
-    setRemoteStreams({})
+      setIsInVoiceChat(false)
+      setVoiceParticipants([])
+      setRemoteStreams({})
+    } catch (error) {
+      console.error('Error leaving voice chat', error)
+    }
   }, [voiceConnection, chatRoom, user, localStream])
 
   const onSignal = useCallback((userId, signal) => {
-    // обработка сигнала WebRTC
+    // Обработка сигнала WebRTC
   }, [])
 
   useEffect(() => {
