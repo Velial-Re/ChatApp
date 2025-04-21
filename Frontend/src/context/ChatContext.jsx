@@ -20,7 +20,7 @@ export const ChatProvider = ({ children }) => {
   const [isChatLoading, setIsChatLoading] = useState(true)
 
   // Загрузка чатов пользователя
-  const loadUserChats = async () => {
+  const loadUserChats = useCallback(async () => {
     try {
       const response = await api.get('/chats/my')
       setUserChats(
@@ -39,7 +39,7 @@ export const ChatProvider = ({ children }) => {
       }
       throw new Error('Не удалось загрузить чаты')
     }
-  }
+  }, [chatRoom, dispatch])
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -54,7 +54,7 @@ export const ChatProvider = ({ children }) => {
     }
 
     fetchChats()
-  }, [user])
+  }, [user, loadUserChats])
 
   const createChat = async () => {
     try {
@@ -109,7 +109,6 @@ export const ChatProvider = ({ children }) => {
       newConnection.on('ReceiveMessage', (userName, message, messageId) => {
         setMessages((prev) => {
           if (prev.some((msg) => msg.id === messageId)) return prev
-          loadUserChats()
           return [
             ...prev,
             {
