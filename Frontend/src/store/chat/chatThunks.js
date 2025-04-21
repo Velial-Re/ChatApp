@@ -96,93 +96,105 @@ export const closeChat = createAsyncThunk('chat/closeChat', async (_, { dispatch
   dispatch(resetChatState())
 })
 
-export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isSwitching = false }, { dispatch, getState }) => {
-  const { auth: { user }, chat: { isConnected } } = getState()
+export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isSwitching = false }, { dispatch, getState, rejectWithValue }) => {
+  const { auth: { user }, chat: { isConnected, chatRoom } } = getState();
 
-  if (!user) throw new Error('Вы не авторизованы')
-  if (isConnected && !isSwitching) return  // Если уже подключены и не меняем чат, выходим
-
-  dispatch(setIsChatLoading(true))
-
-  // При повторном подключении «чистим» старое подключение
-  if (connection) {
-    connection.off('ReceiveMessage')
-    connection.off('UserJoined')
-    connection.off('UserLeft')
-    await connection.stop().catch(console.error)
+  if (!user) throw new Error('Вы не авторизованы');
+  
+  // Если уже подключены к этому же чату - просто выходим
+  if (isConnected && chatRoom === roomName) {
+    return;
   }
 
-  const { data: { token } } = await api.get('/auth/token')
-
-  connection = new signalR.HubConnectionBuilder()
-    .withUrl('http://localhost:8080/chat', {
-      skipNegotiation: true,
-      transport: signalR.HttpTransportType.WebSockets,
-      accessTokenFactory: () => token,
-    })
-    .withAutomaticReconnect()
-    .configureLogging(signalR.LogLevel.Warning)
-    .build()
-
-  connection.on('ReceiveMessage', (userName, message, messageId) => {
-    dispatch(addMessage({
-      userName,
-      message,
-      id: messageId,
-      timestamp: new Date().toISOString(),
-    }))
-  })
-
-  connection.on('UserJoined', (userName) => {
-    if (!isSwitching) {
-      dispatch(addMessage({
-        userName: 'System',
-        message: `${userName} присоединился к чату`,
-        id: crypto.randomUUID(),
-        isSystem: true,
-      }))
-    }
-  })
-
-  connection.on('UserLeft', (userName) => {
-    dispatch(addMessage({
-      userName: 'System',
-      message: `${userName} покинул чат`,
-      id: crypto.randomUUID(),
-      isSystem: true,
-    }))
-  })
-
-  connection.on('UpdateChatList', () => {
-    dispatch(loadUserChats())
-  })
+  dispatch(setIsChatLoading(true));
 
   try {
-    await connection.start()
+    // При повторном подключении «чистим» старое подключение
+    if (connection) {
+      connection.off('ReceiveMessage');
+      connection.off('UserJoined');
+      connection.off('UserLeft');
+      await connection.stop().catch((error) => {
+        console.error('Ошибка при остановке старого соединения:', error);
+      });
+    }
+
+    const { data: { token } } = await api.get('/auth/token');
+
+    // Строим новое соединение
+    connection = new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:8080/chat', {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
+        accessTokenFactory: () => token,
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Warning)
+      .build();
+
+    // Настройка обработчиков событий
+    connection.on('ReceiveMessage', (userName, message, messageId) => {
+      dispatch(addMessage({
+        userName,
+        message,
+        id: messageId,
+        timestamp: new Date().toISOString(),
+      }));
+    });
+
+    connection.on('UserJoined', (userName) => {
+      if (!isSwitching) {
+        dispatch(addMessage({
+          userName: 'System',
+          message: `${userName} присоединился к чату`,
+          id: crypto.randomUUID(),
+          isSystem: true,
+        }));
+      }
+    });
+
+    connection.on('UserLeft', (userName) => {
+      dispatch(addMessage({
+        userName: 'System',
+        message: `${userName} покинул чат`,
+        id: crypto.randomUUID(),
+        isSystem: true,
+      }));
+    });
+
+    connection.on('UpdateChatList', () => {
+      dispatch(loadUserChats());
+    });
+
+    await connection.start();
     await connection.invoke('JoinChat', {
       UserName: user.username,
       ChatRoom: roomName,
-    }, isSwitching)
+    }, isSwitching);
 
-    const history = await connection.invoke('GetChatHistory', roomName)
+    // Получаем историю чата
+    const history = await connection.invoke('GetChatHistory', roomName);
     const formattedHistory = history.map(msg => ({
       userName: msg.UserName,
       message: msg.Content,
       id: crypto.randomUUID(),
       timestamp: msg.SentAt,
       isSystem: false,
-    }))
+    }));
 
-    dispatch(setMessages(formattedHistory))
-    dispatch(setConnectionStatus(true))
-    dispatch(setChatRoom(roomName))
-
+    // Обновляем состояние
+    dispatch(setMessages(formattedHistory));
+    dispatch(setConnectionStatus(true));
+    dispatch(setChatRoom(roomName));
+    
+    return roomName;
   } catch (e) {
-    console.error('Ошибка подключения:', e)
-    dispatch(setMessages([]))
-    dispatch(setConnectionStatus(false))
-    dispatch(setChatRoom(''))
+    console.error('Ошибка при подключении:', e);
+    dispatch(setMessages([]));
+    dispatch(setConnectionStatus(false));
+    dispatch(setChatRoom(''));
+    return rejectWithValue(e.message);
   } finally {
-    dispatch(setIsChatLoading(false))
+    dispatch(setIsChatLoading(false));
   }
-})
+});
