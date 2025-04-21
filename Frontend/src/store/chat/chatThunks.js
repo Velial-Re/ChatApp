@@ -100,7 +100,7 @@ export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isS
   const { auth: { user }, chat: { isConnected } } = getState()
 
   if (!user) throw new Error('Вы не авторизованы')
-  if (isConnected) return
+  if (isConnected && !isSwitching) return  // Если уже подключены и не меняем чат, выходим
 
   dispatch(setIsChatLoading(true))
 

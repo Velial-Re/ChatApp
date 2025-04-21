@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   messages: [],
-  isConnected: false,  // Connection status as a simple boolean
+  isConnected: false,
   chatRoom: '',
   userChats: [],
   showCreateModal: false,
@@ -57,3 +57,29 @@ const chatSlice = createSlice({
 
 export const chatReducer = chatSlice.reducer
 export const chatSliceActions = chatSlice.actions
+
+// If you're exporting individual actions:
+export const { 
+  setMessages,
+  addMessage,
+  updateMessage,
+  removeMessage,
+  setConnectionStatus,
+  setChatRoom,
+  setUserChats,
+  setShowCreateModal,
+  setShowJoinModal,
+  setNewChatName,
+  setIsChatLoading,
+  resetChatState 
+} = chatSliceActions
+
+export const selectChatState = (state) => state.chat
+export const selectMessages = (state) => state.chat.messages
+export const selectUserChats = (state) => state.chat.userChats
+export const selectCurrentRoom = (state) => state.chat.chatRoom
+export const selectChatLoading = (state) => state.chat.isChatLoading
+export const selectChatConnection = (state) => state.chat.isConnected
+export const selectShowCreateModal = (state) => state.chat.showCreateModal
+export const selectShowJoinModal = (state) => state.chat.showJoinModal
+export const selectNewChatName = (state) => state.chat.newChatName

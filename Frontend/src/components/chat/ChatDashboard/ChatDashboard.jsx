@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadUserChats, joinChat } from '../../../store/chat/chatThunks.js'
-import { setShowCreateModal, setShowJoinModal } from '../../../store/chat/chatActions.js' // Исправьте импорт
+import { setShowCreateModal, setShowJoinModal } from '../../../store/chat/chatSlice.js' // Исправлен импорт
 import { selectUserChats, selectShowCreateModal, selectShowJoinModal } from '../../../store/chat/chatSelectors.js'
 import { CreateChatModal } from '../../modals/chatModal/CreateChatModal/CreateChatModal'
 import { JoinChatModal } from '../../modals/chatModal/JoinChatModal/JoinChatModal'
@@ -58,6 +58,9 @@ export default function ChatDashboard() {
       <div className="dashboard__chats-list">
         {isLoading && <p className="loading-message">Загрузка чатов...</p>}
         {loadingError && <p className="error-message">{loadingError}</p>}
+        {!isLoading &&
+          !loadingError &&
+          userChats.length === 0 && <p className="no-chats-message">У вас нет чатов</p>}
         {!isLoading &&
           !loadingError &&
           userChats.map((chat) => (
