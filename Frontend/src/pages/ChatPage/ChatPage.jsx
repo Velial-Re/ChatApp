@@ -1,26 +1,34 @@
 import { useParams } from 'react-router-dom'
-import { useChat } from '../../context/ChatContext.jsx'
 import { useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { lazyImport } from '../../routes/lazy_import.jsx'
+import { useDispatch, useSelector } from 'react-redux'
+import { joinChatAction } from '@/store/chat/chatActions'
+import { lazyImport } from '@/routes/lazy_import.jsx'
 
 export default function ChatPage() {
   const { chatName } = useParams()
-  const { joinChat, chatRoom } = useChat()
+  const dispatch = useDispatch()
+
   const user = useSelector((state) => state.auth.user)
+  const chatRoom = useSelector((state) => state.chat.chatRoom)
+  const isConnected = useSelector((state) => state.chat.isConnected)
+  const isChatLoading = useSelector((state) => state.chat.isChatLoading)
 
   useEffect(() => {
-    if (user && chatName && chatName !== chatRoom) {
-      joinChat(chatName)
+    if (user && chatName && chatName !== chatRoom && !isConnected && !isChatLoading) {
+      dispatch(joinChatAction({ roomName: chatName, isSwitching: true }))
     }
-  }, [chatName, joinChat, chatRoom, user])
+  }, [chatName, chatRoom, user, isConnected, isChatLoading, dispatch])
 
   return (
     <div className="chat-page">
-      {chatName === chatRoom ? (
-        <lazyImport.Chat />
-      ) : (
+      {isChatLoading ? (
         <div className="loading-chat">Загрузка чата...</div>
+      ) : (
+        chatRoom === chatName && isConnected ? (
+          <lazyImport.Chat />
+        ) : (
+          <div className="loading-chat">Ошибка подключения...</div>
+        )
       )}
     </div>
   )
