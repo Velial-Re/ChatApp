@@ -184,6 +184,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/chat").RequireRateLimiting("api");
+app.MapHub<VoiceHub>("/voiceHub");
 
 using (var scope = app.Services.CreateScope())
 {

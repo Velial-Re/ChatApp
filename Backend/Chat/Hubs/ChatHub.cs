@@ -14,6 +14,8 @@ public interface IChatClient
     Task UserJoined(string userName);
     Task UserLeft(string userName);
     Task UpdateChatList();
+    Task PrepareForVoiceChat(string userName);
+    Task UserLeftVoiceChat(string userName);
 }
 
 [Authorize]
@@ -159,6 +161,30 @@ public class ChatHub : Hub<IChatClient>
             })
             .ToListAsync();
     }
+	
+	public async Task JoinVoiceChat(string roomId)
+	{
+    	var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    	if (string.IsNullOrEmpty(userId)) return;
+
+   		var user = await _dbContext.Users.FindAsync(Guid.Parse(userId));
+    	if (user == null) return;
+        
+        await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+        await Clients.Group(roomId).PrepareForVoiceChat(user.UserName);
+	}
+
+	public async Task LeaveVoiceChat(string roomId)
+	{
+    	var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    	if (string.IsNullOrEmpty(userId)) return;
+
+    	var user = await _dbContext.Users.FindAsync(Guid.Parse(userId));
+    	if (user == null) return;
+
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+        await Clients.Group(roomId).UserLeftVoiceChat(user.UserName);
+	}	
 
     public override async Task OnConnectedAsync()
     {
