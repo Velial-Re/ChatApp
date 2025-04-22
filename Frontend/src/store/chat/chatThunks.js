@@ -59,30 +59,38 @@ export const createChat = createAsyncThunk('chat/createChat', async (_, { getSta
 })
 
 export const sendMessage = createAsyncThunk('chat/sendMessage', async (text, { getState, dispatch }) => {
-  // Вместо state.chat.connection берём нашу внешнюю переменную
-  const { isConnected } = getState().chat
-  if (!connection || !isConnected || !text?.trim()) return
+  const { isConnected, chatRoom } = getState().chat;
+  if (!connection || !isConnected || !text?.trim()) return;
 
-  const messageId = crypto.randomUUID()
-  const trimmed = text.trim()
+  const messageId = crypto.randomUUID();
+  const trimmed = text.trim();
 
+  // Добавляем сообщение с флагом isOwn: true
   dispatch(addMessage({
     userName: 'Вы',
     message: trimmed,
     id: messageId,
     timestamp: new Date().toISOString(),
     isPending: true,
-  }))
+    isOwn: true // Добавляем флаг, что это наше сообщение
+  }));
 
   try {
-    await connection.invoke('SendMessage', trimmed, messageId)
-    await connection.invoke('UpdateChatList')
-    dispatch(updateMessage({ id: messageId, updates: { isPending: false } }))
+    await connection.invoke('SendMessage', trimmed, messageId);
+    await connection.invoke('UpdateChatList');
+    dispatch(updateMessage({ 
+      id: messageId, 
+      updates: { 
+        isPending: false,
+        // Не нужно обновлять userName, так как мы уже знаем, что это наше сообщение
+      } 
+    }));
   } catch (e) {
-    dispatch(removeMessage(messageId))
-    alert('Не удалось отправить сообщение')
+    dispatch(removeMessage(messageId));
+    alert('Не удалось отправить сообщение');
   }
-})
+});
+
 
 export const closeChat = createAsyncThunk('chat/closeChat', async (_, { dispatch }) => {
   if (connection) {

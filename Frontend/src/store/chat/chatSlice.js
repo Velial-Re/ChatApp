@@ -15,11 +15,15 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
+    // Оставляем только эту версию, с проверкой на дубли
+    addMessage: (state, action) => {
+      const exists = state.messages.find(msg => msg.id === action.payload.id)
+      if (!exists) {
+        state.messages.push(action.payload)
+      }
+    },
     setMessages(state, action) {
       state.messages = action.payload
-    },
-    addMessage(state, action) {
-      state.messages.push(action.payload)
     },
     updateMessage(state, action) {
       const index = state.messages.findIndex(m => m.id === action.payload.id)
@@ -72,5 +76,5 @@ export const {
   setShowJoinModal,
   setNewChatName,
   setIsChatLoading,
-  resetChatState
+  resetChatState,
 } = chatSlice.actions
