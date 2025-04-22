@@ -23,7 +23,9 @@ const chatSlice = createSlice({
     },
     updateMessage(state, action) {
       const index = state.messages.findIndex(m => m.id === action.payload.id)
-      if (index !== -1) state.messages[index] = { ...state.messages[index], ...action.payload.updates }
+      if (index !== -1) {
+        state.messages[index] = { ...state.messages[index], ...action.payload.updates }
+      }
     },
     removeMessage(state, action) {
       state.messages = state.messages.filter(m => m.id !== action.payload)
@@ -58,8 +60,7 @@ const chatSlice = createSlice({
 export const chatReducer = chatSlice.reducer
 export const chatSliceActions = chatSlice.actions
 
-// If you're exporting individual actions:
-export const { 
+export const {
   setMessages,
   addMessage,
   updateMessage,
@@ -71,15 +72,5 @@ export const {
   setShowJoinModal,
   setNewChatName,
   setIsChatLoading,
-  resetChatState 
-} = chatSliceActions
-
-export const selectChatState = (state) => state.chat
-export const selectMessages = (state) => state.chat.messages
-export const selectUserChats = (state) => state.chat.userChats
-export const selectCurrentRoom = (state) => state.chat.chatRoom
-export const selectChatLoading = (state) => state.chat.isChatLoading
-export const selectChatConnection = (state) => state.chat.isConnected
-export const selectShowCreateModal = (state) => state.chat.showCreateModal
-export const selectShowJoinModal = (state) => state.chat.showJoinModal
-export const selectNewChatName = (state) => state.chat.newChatName
+  resetChatState
+} = chatSlice.actions

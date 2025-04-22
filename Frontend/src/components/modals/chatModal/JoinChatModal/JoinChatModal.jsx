@@ -4,7 +4,7 @@ import Modal from '../../Modal/Modal.jsx'
 import { joinChat } from '@/store/chat/chatThunks.js'
 import { setShowJoinModal } from '@/store/chat/chatActions.js'
 import { useNavigate } from 'react-router-dom'
-import { selectChatConnection, selectCurrentRoom } from '@/store/chat/chatSlice.js'
+import { selectChatConnection, selectCurrentRoom } from '@/store/chat/chatSelectors.js'
 
 export const JoinChatModal = () => {
   const [chatName, setChatName] = useState('')
