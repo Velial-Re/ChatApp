@@ -9,6 +9,7 @@ import { selectChatConnection, selectCurrentRoom } from '@/store/chat/chatSelect
 export const JoinChatModal = () => {
   const [chatName, setChatName] = useState('')
   const [isJoining, setIsJoining] = useState(false)
+  const [error, setError] = useState(null)
   const dispatch = useDispatch()
   const showJoinModal = useSelector((state) => state.chat.showJoinModal)
   const isConnected = useSelector(selectChatConnection)
@@ -20,19 +21,20 @@ export const JoinChatModal = () => {
     if (!trimmedName || isJoining) return
 
     setIsJoining(true)
+    setError(null) // Сброс ошибки перед новым запросом
+
     try {
       await dispatch(joinChat({ roomName: trimmedName, isSwitching: false })).unwrap()
       dispatch(setShowJoinModal(false))
       setChatName('')
     } catch (error) {
       console.error('Ошибка при подключении к чату:', error)
-      // Можно добавить обработку ошибки (например, toast)
+      setError(error || 'Не удалось подключиться к чату')
     } finally {
       setIsJoining(false)
     }
   }
 
-  // Эффект для навигации при успешном подключении
   useEffect(() => {
     if (isConnected && currentRoom) {
       navigate(`/chat/${currentRoom}`)
@@ -45,6 +47,7 @@ export const JoinChatModal = () => {
       setActive={(active) => {
         if (!active) {
           setChatName('')
+          setError(null)
         }
         dispatch(setShowJoinModal(active))
       }}
@@ -58,6 +61,7 @@ export const JoinChatModal = () => {
         className="modal__input"
         onKeyDown={(e) => e.key === 'Enter' && onJoin()}
       />
+      {error && <div className="modal__error">{error}</div>}
       <div className="modal__actions">
         <button
           onClick={() => dispatch(setShowJoinModal(false))}
