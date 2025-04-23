@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { lazyImport } from '../../routes/lazy_import.jsx'
+import { lazyImport } from '@/routes/lazy_import.jsx'
 
 export default function MainPage() {
   return (

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { loadUserChats, joinChat } from '../../../store/chat/chatThunks.js'
-import { setShowCreateModal, setShowJoinModal } from '../../../store/chat/chatSlice.js' // Исправлен импорт
-import { selectUserChats, selectShowCreateModal, selectShowJoinModal } from '../../../store/chat/chatSelectors.js'
+import { loadUserChats, joinChat } from '@/store/chat/chatThunks.js'
+import { setShowCreateModal, setShowJoinModal } from '@/store/chat/chatSlice.js' // Исправлен импорт
+import { selectUserChats, selectShowCreateModal, selectShowJoinModal } from '@/store/chat/chatSelectors.js'
 import { CreateChatModal } from '../../modals/chatModal/CreateChatModal/CreateChatModal'
 import { JoinChatModal } from '../../modals/chatModal/JoinChatModal/JoinChatModal'
 import { useNavigate } from 'react-router-dom'

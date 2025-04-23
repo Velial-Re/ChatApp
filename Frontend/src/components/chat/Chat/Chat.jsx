@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { sendMessage } from '../../../store/chat/chatThunks.js'
-import { selectMessages, selectCurrentRoom } from '../../../store/chat/chatSelectors.js'
+import { sendMessage } from '@/store/chat/chatThunks.js'
+import { selectMessages, selectCurrentRoom } from '@/store/chat/chatSelectors.js'
 import { Message } from '../Message/Message.jsx'
 
 export default function Chat() {

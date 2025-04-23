@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import * as signalR from '@microsoft/signalr'
-import api from '../../api/api'
+import api from '@/api/api'
 import {
   setMessages,
   addMessage,

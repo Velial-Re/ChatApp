@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { joinChat } from '../../../store/chat/chatThunks.js'
+import { joinChat } from '@/store/chat/chatThunks.js'
 
 export const WaitingRoom = () => {
   const [userName, setUserName] = useState('')

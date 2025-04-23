@@ -3,7 +3,7 @@
 @use 'variables';
 @use './mixins';
 @use './app';
-@use '../components/index' as *;
+@use '@/components/index' as *;
 
 .main-page__container {
   display: flex;
