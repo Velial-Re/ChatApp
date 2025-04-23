@@ -1,3 +1,4 @@
+// Chat.jsx
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { sendMessage } from '@/store/chat/chatThunks.js'
@@ -15,17 +16,15 @@ export default function Chat() {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const onSendMessage = () => {
+  const handleSend = () => {
     if (message.trim()) {
       dispatch(sendMessage(message))
       setMessage('')
     }
   }
 
-  const enterPress = (e) => {
-    if (e.key === 'Enter') {
-      onSendMessage()
-    }
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') handleSend()
   }
 
   return (
@@ -35,13 +34,7 @@ export default function Chat() {
       </div>
       <div className="chat__messages-list">
         {messages.map((msg) => (
-          <Message
-            key={msg.id}
-            message={msg.message}
-            userName={msg.userName}
-            isPending={msg.isPending}
-            isOwn={msg.isOwn}
-          />
+          <Message key={msg.id} {...msg} />
         ))}
         <span ref={messageEndRef} />
       </div>
@@ -51,12 +44,10 @@ export default function Chat() {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={enterPress}
+          onKeyPress={handleKeyPress}
           placeholder="Введите сообщение"
         />
-        <button className="chat__button" onClick={onSendMessage}>
-          Отправить
-        </button>
+        <button className="chat__button" onClick={handleSend}>Отправить</button>
       </div>
     </div>
   )

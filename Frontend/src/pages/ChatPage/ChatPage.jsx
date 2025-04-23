@@ -21,14 +21,10 @@ export default function ChatPage() {
 
   return (
     <div className="chat-page">
-      {isChatLoading ? (
-        <div className="loading-chat">Загрузка чата...</div>
+      {chatRoom === chatName && isConnected ? (
+        <lazyImport.Chat />
       ) : (
-        chatRoom === chatName && isConnected ? (
-          <lazyImport.Chat />
-        ) : (
-          <div className="loading-chat">Ошибка подключения...</div>
-        )
+        <div className="loading-chat">Ошибка подключения...</div>
       )}
     </div>
   )

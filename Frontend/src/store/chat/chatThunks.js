@@ -10,33 +10,25 @@ import {
   setUserChats,
   setIsChatLoading,
   resetChatState,
-} from './chatActions'
+  setConnectionStatus,
+} from './chatSlice'
 import { logout } from '../auth/authSlice'
-import { chatSliceActions } from './chatSlice'
 
-const { setConnectionStatus } = chatSliceActions
-
-// Локальное подключение, не хранится в state
 let connection = null
 
 export const loadUserChats = createAsyncThunk('chat/loadUserChats', async (_, { dispatch, getState }) => {
-  const { chatRoom } = getState().chat
   try {
     dispatch(setIsChatLoading(true))
-    const response = await api.get('/chats/my')
-    dispatch(setUserChats(
-      response.data.map(chat => ({
-        ...chat,
-        lastMessage: chat.lastMessage || 'Нет сообщений',
-        isActive: chat.name === chatRoom,
-      }))
-    ))
+    const { chatRoom } = getState().chat
+    const { data } = await api.get('/chats/my')
+    dispatch(setUserChats(data.map(chat => ({
+      ...chat,
+      lastMessage: chat.lastMessage || 'Нет сообщений',
+      isActive: chat.name === chatRoom,
+    }))))
   } catch (e) {
-    if (e.response?.status === 401) {
-      dispatch(logout())
-    } else {
-      console.error('Ошибка при загрузке чатов:', e)
-    }
+    if (e.response?.status === 401) dispatch(logout())
+    else console.error('Ошибка при загрузке чатов:', e)
   } finally {
     dispatch(setIsChatLoading(false))
   }
@@ -45,13 +37,14 @@ export const loadUserChats = createAsyncThunk('chat/loadUserChats', async (_, { 
 export const createChat = createAsyncThunk('chat/createChat', async (_, { getState, dispatch }) => {
   const { auth: { user }, chat: { newChatName } } = getState()
   if (!user) throw new Error('Вы не авторизованы')
-  if (!newChatName.trim()) throw new Error('Название чата не может быть пустым')
+  const name = newChatName.trim()
+  if (!name) throw new Error('Название чата не может быть пустым')
 
   try {
-    const response = await api.post('/chats/create', { name: newChatName.trim() })
-    await dispatch(loadUserChats())  
-    await dispatch(joinChat({ roomName: response.data.name })) 
-    return response.data
+    const { data } = await api.post('/chats/create', { name })
+    dispatch(loadUserChats())
+    dispatch(joinChat({ roomName: data.name }))
+    return data
   } catch (e) {
     console.error('Ошибка при создании чата:', e)
     throw new Error('Ошибка при создании чата')
@@ -59,38 +52,32 @@ export const createChat = createAsyncThunk('chat/createChat', async (_, { getSta
 })
 
 export const sendMessage = createAsyncThunk('chat/sendMessage', async (text, { getState, dispatch }) => {
-  const { isConnected, chatRoom } = getState().chat;
-  if (!connection || !isConnected || !text?.trim()) return;
+  const { isConnected } = getState().chat
+  if (!connection || !isConnected || !text?.trim()) return
 
-  const messageId = crypto.randomUUID();
-  const trimmed = text.trim();
+  const trimmed = text.trim()
+  const messageId = crypto.randomUUID()
 
-  // Добавляем сообщение с флагом isOwn: true
   dispatch(addMessage({
     userName: 'Вы',
     message: trimmed,
     id: messageId,
     timestamp: new Date().toISOString(),
     isPending: true,
-    isOwn: true // Добавляем флаг, что это наше сообщение
-  }));
+    isOwn: true,
+  }))
 
   try {
-    await connection.invoke('SendMessage', trimmed, messageId);
-    await connection.invoke('UpdateChatList');
-    dispatch(updateMessage({ 
-      id: messageId, 
-      updates: { 
-        isPending: false,
-        // Не нужно обновлять userName, так как мы уже знаем, что это наше сообщение
-      } 
-    }));
-  } catch (e) {
-    dispatch(removeMessage(messageId));
-    alert('Не удалось отправить сообщение');
-  }
-});
+    await connection.invoke('SendMessage', trimmed, messageId)
+    dispatch(updateMessage({ id: messageId, updates: { isPending: false } }))
 
+    // Не дожидаемся, чтобы не тормозить UI
+    connection.invoke('UpdateChatList').catch(console.warn)
+  } catch (e) {
+    dispatch(removeMessage(messageId))
+    alert('Не удалось отправить сообщение')
+  }
+})
 
 export const closeChat = createAsyncThunk('chat/closeChat', async (_, { dispatch }) => {
   if (connection) {
@@ -99,37 +86,28 @@ export const closeChat = createAsyncThunk('chat/closeChat', async (_, { dispatch
     } catch (e) {
       console.error('Ошибка остановки соединения:', e)
     }
+    connection = null
   }
-  connection = null
   dispatch(resetChatState())
 })
 
 export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isSwitching = false }, { dispatch, getState, rejectWithValue }) => {
-  const { auth: { user }, chat: { isConnected, chatRoom } } = getState();
+  const { auth: { user }, chat: { isConnected, chatRoom } } = getState()
+  if (!user) throw new Error('Вы не авторизованы')
+  if (isConnected && chatRoom === roomName) return
 
-  if (!user) throw new Error('Вы не авторизованы');
-  
-  // Если уже подключены к этому же чату - просто выходим
-  if (isConnected && chatRoom === roomName) {
-    return;
-  }
-
-  dispatch(setIsChatLoading(true));
+  dispatch(setIsChatLoading(true))
 
   try {
-    // При повторном подключении «чистим» старое подключение
     if (connection) {
-      connection.off('ReceiveMessage');
-      connection.off('UserJoined');
-      connection.off('UserLeft');
-      await connection.stop().catch((error) => {
-        console.error('Ошибка при остановке старого соединения:', error);
-      });
+      connection.off('ReceiveMessage')
+      connection.off('UserJoined')
+      connection.off('UserLeft')
+      await connection.stop()
     }
 
-    const { data: { token } } = await api.get('/auth/token');
+    const { data: { token } } = await api.get('/auth/token')
 
-    // Строим новое соединение
     connection = new signalR.HubConnectionBuilder()
       .withUrl('http://localhost:8080/chat', {
         skipNegotiation: true,
@@ -138,17 +116,11 @@ export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isS
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
-      .build();
+      .build()
 
-    // Настройка обработчиков событий
-    connection.on('ReceiveMessage', (userName, message, messageId) => {
-      dispatch(addMessage({
-        userName,
-        message,
-        id: messageId,
-        timestamp: new Date().toISOString(),
-      }));
-    });
+    connection.on('ReceiveMessage', (userName, message, id) => {
+      dispatch(addMessage({ userName, message, id, timestamp: new Date().toISOString() }))
+    })
 
     connection.on('UserJoined', (userName) => {
       if (!isSwitching) {
@@ -157,9 +129,9 @@ export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isS
           message: `${userName} присоединился к чату`,
           id: crypto.randomUUID(),
           isSystem: true,
-        }));
+        }))
       }
-    });
+    })
 
     connection.on('UserLeft', (userName) => {
       dispatch(addMessage({
@@ -167,42 +139,32 @@ export const joinChat = createAsyncThunk('chat/joinChat', async ({ roomName, isS
         message: `${userName} покинул чат`,
         id: crypto.randomUUID(),
         isSystem: true,
-      }));
-    });
+      }))
+    })
 
-    connection.on('UpdateChatList', () => {
-      dispatch(loadUserChats());
-    });
+    connection.on('UpdateChatList', () => dispatch(loadUserChats()))
 
-    await connection.start();
-    await connection.invoke('JoinChat', {
-      UserName: user.username,
-      ChatRoom: roomName,
-    }, isSwitching);
+    await connection.start()
+    await connection.invoke('JoinChat', { UserName: user.username, ChatRoom: roomName }, isSwitching)
 
-    // Получаем историю чата
-    const history = await connection.invoke('GetChatHistory', roomName);
-    const formattedHistory = history.map(msg => ({
+    const history = await connection.invoke('GetChatHistory', roomName)
+    dispatch(setMessages(history.map(msg => ({
       userName: msg.UserName,
       message: msg.Content,
       id: crypto.randomUUID(),
       timestamp: msg.SentAt,
-      isSystem: false,
-    }));
+    }))))
 
-    // Обновляем состояние
-    dispatch(setMessages(formattedHistory));
-    dispatch(setConnectionStatus(true));
-    dispatch(setChatRoom(roomName));
-    
-    return roomName;
+    dispatch(setConnectionStatus(true))
+    dispatch(setChatRoom(roomName))
+    return roomName
   } catch (e) {
-    console.error('Ошибка при подключении:', e);
-    dispatch(setMessages([]));
-    dispatch(setConnectionStatus(false));
-    dispatch(setChatRoom(''));
-    return rejectWithValue(e.message);
+    console.error('Ошибка при подключении:', e)
+    dispatch(setMessages([]))
+    dispatch(setConnectionStatus(false))
+    dispatch(setChatRoom(''))
+    return rejectWithValue(e.message)
   } finally {
-    dispatch(setIsChatLoading(false));
+    dispatch(setIsChatLoading(false))
   }
-});
+})

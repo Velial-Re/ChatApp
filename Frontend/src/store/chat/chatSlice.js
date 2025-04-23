@@ -15,58 +15,51 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    // Оставляем только эту версию, с проверкой на дубли
-    addMessage: (state, action) => {
-      const exists = state.messages.find(msg => msg.id === action.payload.id)
-      if (!exists) {
-        state.messages.push(action.payload)
+    addMessage: (state, { payload }) => {
+      if (!state.messages.find(msg => msg.id === payload.id)) {
+        state.messages.push(payload)
       }
     },
-    setMessages(state, action) {
-      state.messages = action.payload
+    setMessages: (state, { payload }) => {
+      state.messages = payload
     },
-    updateMessage(state, action) {
-      const index = state.messages.findIndex(m => m.id === action.payload.id)
-      if (index !== -1) {
-        state.messages[index] = { ...state.messages[index], ...action.payload.updates }
-      }
+    updateMessage: (state, { payload }) => {
+      const msg = state.messages.find(m => m.id === payload.id)
+      if (msg) Object.assign(msg, payload.updates)
     },
-    removeMessage(state, action) {
-      state.messages = state.messages.filter(m => m.id !== action.payload)
+    removeMessage: (state, { payload }) => {
+      state.messages = state.messages.filter(m => m.id !== payload)
     },
-    setConnectionStatus(state, action) {
-      state.isConnected = action.payload
+    setConnectionStatus: (state, { payload }) => {
+      state.isConnected = payload
     },
-    setChatRoom(state, action) {
-      state.chatRoom = action.payload
+    setChatRoom: (state, { payload }) => {
+      state.chatRoom = payload
     },
-    setUserChats(state, action) {
-      state.userChats = action.payload
+    setUserChats: (state, { payload }) => {
+      state.userChats = payload
     },
-    setShowCreateModal(state, action) {
-      state.showCreateModal = action.payload
+    setShowCreateModal: (state, { payload }) => {
+      state.showCreateModal = payload
     },
-    setShowJoinModal(state, action) {
-      state.showJoinModal = action.payload
+    setShowJoinModal: (state, { payload }) => {
+      state.showJoinModal = payload
     },
-    setNewChatName(state, action) {
-      state.newChatName = action.payload
+    setNewChatName: (state, { payload }) => {
+      state.newChatName = payload
     },
-    setIsChatLoading(state, action) {
-      state.isChatLoading = action.payload
+    setIsChatLoading: (state, { payload }) => {
+      state.isChatLoading = payload
     },
-    resetChatState() {
-      return initialState
-    },
+    resetChatState: () => initialState,
   },
 })
 
 export const chatReducer = chatSlice.reducer
 export const chatSliceActions = chatSlice.actions
-
 export const {
-  setMessages,
   addMessage,
+  setMessages,
   updateMessage,
   removeMessage,
   setConnectionStatus,
