@@ -8,11 +8,11 @@
 
 ## 🚀 Реализованный функционал
 
-- 🔐 Аутентификация — JWT + Refresh Token  
-- 💬 Текстовый чат — React + SignalR  
-- 🎙️ Голосовой чат — WebRTC (в разработке)  
-- 📱 Адаптивный интерфейс — SCSS  
-- ⚡ Оптимизация — ленивая загрузка, code splitting, Vite  
+- 🔐 Аутентификация — JWT + Refresh Token
+- 💬 Текстовый чат — React + SignalR
+- 🎙️ Голосовой чат — WebRTC (в разработке)
+- 📱 Адаптивный интерфейс — SCSS
+- ⚡ Оптимизация — ленивая загрузка, code splitting, Vite
 
 ---
 
@@ -20,21 +20,21 @@
 
 ### 🖥️ Frontend
 
-- **React + Vite** — SPA-интерфейс с быстрой сборкой  
-- **React Router v6** — маршрутизация  
-- **SignalR** — веб-сокеты для общения  
-- **WebRTC** — голосовая связь (в процессе)  
-- **Axios** — HTTP-запросы  
-- **SCSS** — стилизация  
+- **React + Vite** — SPA-интерфейс с быстрой сборкой
+- **React Router v6** — маршрутизация
+- **SignalR** — веб-сокеты для общения
+- **WebRTC** — голосовая связь (в процессе)
+- **Axios** — HTTP-запросы
+- **SCSS** — стилизация
 
 ### 🔧 Backend
 
-- **ASP.NET Core** — Web API  
-- **SignalR** — real-time коммуникация  
-- **PostgreSQL** — база данных  
-- **Redis** — кэш и хранение refresh-токенов  
-- **JWT** — аутентификация  
-- **Swagger** — документация API  
+- **ASP.NET Core** — Web API
+- **SignalR** — real-time коммуникация
+- **PostgreSQL** — база данных
+- **Redis** — кэш и хранение refresh-токенов
+- **JWT** — аутентификация
+- **Swagger** — документация API
 
 ---
 
@@ -44,7 +44,7 @@
 
 ### 🔧 Требования:
 
-- [Docker](https://www.docker.com/)  
+- [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ### ▶️ Команда запуска:
@@ -55,19 +55,19 @@ docker-compose up --build
 
 ### 🔗 Доступ после запуска:
 
-- 🌐 Клиент: http://localhost:5173  
-- 🧠 API: http://localhost:8080  
-- 📑 Swagger: http://localhost:8080/swagger  
+- 🌐 Клиент: http://localhost:5173
+- 🧠 API: http://localhost:8080
+- 📑 Swagger: http://localhost:8080/swagger
 
 ---
 
 ## 📌 Возможности
 
-- ✅ Регистрация и вход  
-- ✅ Создание и подключение к чатам  
-- ✅ Обмен сообщениями в реальном времени  
-- ✅ История сообщений  
-- 🛠️ Голосовая связь (в разработке)  
+- ✅ Регистрация и вход
+- ✅ Создание и подключение к чатам
+- ✅ Обмен сообщениями в реальном времени
+- ✅ История сообщений
+- 🛠️ Голосовая связь (в разработке)
 
 ---
 
@@ -75,34 +75,35 @@ docker-compose up --build
 
 ```
 ChatApp/
-├── Frontend/                  
+├── Frontend/
 │   ├── src/
 │   │   ├── components/        # UI-компоненты
 │   │   ├── context/           # Контексты (Auth, Chat, Voice)
+│   │   ├── store/             # Redux reducers (Auth, Chat, Voice)
 │   │   ├── pages/             # Страницы (Login, Chat, Register)
 │   │   ├── routes/            # Роутинг
 │   │   └── styles/            # SCSS
-│   └── vite.config.js         
+│   └── vite.config.mjs
 │
-└── Backend/                   
+└── Backend/
     ├── Controllers/           # API-контроллеры
     ├── Hubs/                  # SignalR хабы
     ├── Models/                # Сущности (User, Message)
     ├── Services/              # Бизнес-логика
     ├── Data/                  # DbContext и миграции
-    └── appsettings.json       
+    └── appsettings.json
 ```
 
 ---
 
 ## 🔧 Планы на будущее
 
-- 🎙️ Завершение голосового чата (WebRTC)  
-- 🧰 Подключение **Redux Toolkit** для управления состоянием  
-- 🔒 Шифрование сообщений  
-- 🔔 Уведомления  
-- 👥 Приватные чаты и группы  
-- 🖼 Отправка изображений и файлов  
+- 🎙️ Завершение голосового чата (WebRTC)
+- 🧰 Подключение **Redux Toolkit** для управления состоянием
+- 🔒 Шифрование сообщений
+- 🔔 Уведомления
+- 👥 Приватные чаты и группы
+- 🖼 Отправка изображений и файлов
 - 🚀 **Рассматривается переход backend на Go для повышения производительности и масштабируемости**
 
 ---
